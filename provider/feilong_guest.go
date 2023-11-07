@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func feilongGuest() *schema.Resource {
@@ -27,6 +28,7 @@ func feilongGuest() *schema.Resource {
 				Type:		schema.TypeString,
 				Optional:	true,
 				Computed:	true,
+// compute userid dynamically here, if not provided?
 			},
 			"vcpus": {
 				Description:	"Virtual CPUs count",
@@ -57,16 +59,12 @@ func feilongGuest() *schema.Resource {
 }
 
 func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	client := meta.(*apiClient).Client
+	// client := meta.(*apiClient).Client
 
-	// Check that the z/VM connector answers and is of expected version
-	httpResp, err := client.GetZvmCloudConnectorVersion()
-	if err != nil {
-		return diag.Errorf("Unable to contact z/VM connector, got error: %s", err)
-	}
-	if httpResp.Output.Version != "1.6.6" {
-		return diag.Errorf("Expected z/VM connector version 1.6.6, got: %s", httpResp.Output.Version)
-	}
+// Do the real creation here
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "created a Feilong guest resource")
 
 	d.SetId("foobar")
 	// ideally, we should get the ID from feilong API
