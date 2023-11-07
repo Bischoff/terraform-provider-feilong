@@ -48,35 +48,36 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 		Attributes: map[string]schema.Attribute {
 			"name": schema.StringAttribute {
-				MarkdownDescription: "System name for Linux",
-				Required:            true,
+				MarkdownDescription:	"System name for Linux",
+				Required:		true,
 			},
 			"userid": schema.StringAttribute {
-				MarkdownDescription: "System name for system/Z",
-				Optional:            true,
-				Computed:            true,
+				MarkdownDescription:	"System name for system/Z",
+				Optional:		true,
+				Computed:		true,
 			},
 			"vcpus": schema.Int64Attribute {
-				MarkdownDescription: "Virtual CPUs count",
-				Optional:            true,
-				Computed:            true,
-				Default:             int64default.StaticInt64(1),
+				MarkdownDescription:	"Virtual CPUs count",
+				Optional:		true,
+				Computed:		true,
+				Default:		int64default.StaticInt64(1),
 			},
 			"memory": schema.StringAttribute {
-				MarkdownDescription: "Memory with unit (G, M, k)",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("1G"),
+				MarkdownDescription:	"Memory with unit (G, M, k)",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString("512M"),
 			},
 			"disk": schema.StringAttribute {
-				MarkdownDescription: "Disk size with unit (G, M, k)",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("10G"),
+				MarkdownDescription:	"Disk size with unit (G, M, k)",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString("10G"),
+				// we could use the size of the image file instead
 			},
 			"image": schema.StringAttribute {
-				MarkdownDescription: "Virtual CPUs count",
-				Required:            true,
+				MarkdownDescription:	"Image name",
+				Required:		true,
 			},
 		},
 	}
