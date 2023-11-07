@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,6 +54,7 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription:	"System name for system/Z",
 				Optional:		true,
 				Computed:		true,
+// compute userid dynamically here, if not provided?
 			},
 			"vcpus": schema.Int64Attribute {
 				MarkdownDescription:	"Virtual CPUs count",
@@ -104,24 +104,9 @@ func (r *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// Check that the z/VM connector answers and is of expected version
-	httpResp, err := r.client.GetZvmCloudConnectorVersion()
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to contact z/VM connector, got error: %s", err))
-		return
-	}
-	if httpResp.Output.Version != "1.6.6" {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Expected z/VM connector version 1.6.6, got: %s", httpResp.Output.Version))
-		return
-	}
-
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	// data.Name = types.StringValue("foobar")
-// compute userid dynamically here, if not provided? or above?
+// Do the real creation here
 
 	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
 	// Save data into Terraform state

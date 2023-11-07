@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"os"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -88,6 +89,17 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 			"An unexpected error occurred when creating the HashiCups API client.\n\n" +
 			"Feilong Client Error: "+err.Error(),
 		)
+		return
+	}
+
+	// Check that the z/VM connector answers and is of expected version
+	httpResp, err := client.GetZvmCloudConnectorVersion()
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to contact z/VM connector, got error: %s", err))
+		return
+	}
+	if httpResp.Output.Version != "1.6.6" {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Expected z/VM connector version 1.6.6, got: %s", httpResp.Output.Version))
 		return
 	}
 
