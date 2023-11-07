@@ -2,10 +2,13 @@
 
 This terraform provider enables to deploy s390 virtual machines on z/VM via Feilong.
 
+NOTE: this is the branch for terraform 0.13.4 (protocol version 5).
+The code for terraform 1.5.5 (protocol version 6) is in `main` branch.
+
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.5
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 0.13.4
 - [Go](https://golang.org/doc/install) >= 1.21
 
 
@@ -24,27 +27,13 @@ The provider will be installed into `$GOPATH/bin`.
 
 ## Using the Provider
 
-At this point, the Feilong provider is not yet in HashiCorp's registry. To access it, you must do one of these:
-
-Create a system-wide symbolic link:
+At this point, the Feilong provider is not yet in HashiCorp's registry. To access it, you must
+create a system-wide symbolic link:
 
 ```bash
 # mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.1/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.1/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
-```
-
-Or define this override in the `.terraformrc` file in your home directory:
-
-```terraform
-provider_installation {
-
-  dev_overrides {
-      "registry.terraform.io/bischoff/feilong" = "<GOPATH>/bin/"
-  }
-
-  direct {}
-}
 ```
 
 Replace `<GOPATH>` with the value of your `$GOPATH` environment variable.
@@ -53,7 +42,7 @@ In your `main.tf` file, use:
 
 ```terraform
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 0.13"
   required_providers {
     feilong = {
       source = "bischoff/feilong"

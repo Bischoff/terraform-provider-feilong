@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"log"
 
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
 	"github.com/Bischoff/terraform-provider-feilong/provider"
 )
@@ -20,14 +18,11 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/bischoff/feilong",
-		Debug:   debug,
+	opts := &plugin.ServeOpts {
+		ProviderAddr:	"registry.terraform.io/bischoff/feilong",
+		ProviderFunc:	provider.New(version),
+		Debug:		debug,
 	}
 
-	err := providerserver.Serve(context.Background(), provider.New(version), opts)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	plugin.Serve(opts)
 }

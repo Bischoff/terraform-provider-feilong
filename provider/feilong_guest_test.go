@@ -1,53 +1,32 @@
 package provider
 
 import (
-	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccFeilongGuest(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+	t.Skip("resource not yet implemented, remove this once you add your own code")
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
-				Config: testAccFeilongGuestConfig("one"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("feilong_guest.test", "configurable_attribute", "one"),
-					resource.TestCheckResourceAttr("feilong_guest.test", "defaulted", "example value when not configured"),
-					resource.TestCheckResourceAttr("feilong_guest.test", "id", "example-id"),
+				Config: testAccFeilongGuest,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(
+						"feilong_guest.foo", "sample_attribute", regexp.MustCompile("^ba")),
 				),
 			},
-			// ImportState testing
-			{
-				ResourceName:      "feilong_guest.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// This is not normally necessary, but is here because this
-				// example code does not have an actual upstream service.
-				// Once the Read method is able to refresh information from
-				// the upstream service, this can be removed.
-				ImportStateVerifyIgnore: []string{"configurable_attribute", "defaulted"},
-			},
-			// Update and Read testing
-			{
-				Config: testAccFeilongGuestConfig("two"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("feilong_guest.test", "configurable_attribute", "two"),
-				),
-			},
-			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
-func testAccFeilongGuestConfig(configurableAttribute string) string {
-	return fmt.Sprintf(`
-resource "feilong_guest" "test" {
-  configurable_attribute = %[1]q
+const testAccFeilongGuest = `
+resource "feilong_guest" "foo" {
+  sample_attribute = "bar"
 }
-`, configurableAttribute)
-}
+`

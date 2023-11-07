@@ -1,118 +1,47 @@
 package provider
 
 import (
-	"context"
-	"os"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/Bischoff/feilong_api"
 )
 
-// Ensure FeilongProvider satisfies various provider interfaces.
-var _ provider.Provider = &FeilongProvider{}
-
-// FeilongProvider defines the provider implementation.
-type FeilongProvider struct {
-	// version is set to the provider version on release, "dev" when the
-	// provider is built and ran locally, and "test" when running acceptance
-	// testing.
-	version string
-}
-
-// FeilongProviderModel describes the provider data model.
-type FeilongProviderModel struct {
-	Connector types.String `tfsdk:"connector"`
-}
-
-func (p *FeilongProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "feilong"
-	resp.Version = p.version
-}
-
-func (p *FeilongProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"connector": schema.StringAttribute{
-				MarkdownDescription:	"Domain name or address of the z/VM cloud connector",
-				Optional:		true,
+func New(version string) func() *schema.Provider {
+	return func() *schema.Provider {
+		return &schema.Provider {
+			Schema: map[string]*schema.Schema{
+				"connector": {
+					Type:        schema.TypeString,
+					Required:    true,
+					DefaultFunc: schema.EnvDefaultFunc("ZVM_CONNECTOR", nil),
+					Description: "Domain name or address of the z/VM cloud connector",
+				},
 			},
-		},
-	}
-}
 
-func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var config FeilongProviderModel
+			// DataSourcesMap: map[string]*schema.Resource {
+			//	"feilong_data_source": dataSourceFeilong(),
+			//},
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+			ResourcesMap: map[string]*schema.Resource {
+				"feilong_guest": feilongGuest(),
+			},
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if config.Connector.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("connector"),
-			"Unknown z/VM cloud connector",
-			"The provider cannot create the Feilong client as there is an unknown configuration value for the z/VM cloud connector. " +
-			"Please provide the value in the configuration, or use the ZVM_CONNECTOR environment variable.",
-		)
-		return
-	}
-
-	connector := os.Getenv("ZVM_CONNECTOR")
-	if !config.Connector.IsNull() {
-		connector = config.Connector.ValueString()
-	}
-
-	if connector == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("connector"),
-			"Missing z/VM cloud connector",
-			"The provider cannot create the Feilong client as there is a missing or empty value for the z/VM cloud connector. " +
-			"Please make sure the value in the configuration, or of the ZVM_CONNECTOR environment variable, is not empty.",
-		)
-		return
-	}
-
-	// Create a new Feilong client using the configuration values
-	client, err := feilong_api.NewClient(&connector)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to Create Feilong API Client",
-			"An unexpected error occurred when creating the HashiCups API client.\n\n" +
-			"Feilong Client Error: "+err.Error(),
-		)
-		return
-	}
-
-	// Make the Feilong client available during DataSource and Resource type Configure methods.
-	resp.DataSourceData = client
-	resp.ResourceData = client
-}
-
-func (p *FeilongProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	// return []func() datasource.DataSource{
-	// 		NewFeilongDataSource,
-	// }
-	return nil
-}
-
-func (p *FeilongProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewFeilongGuest,
-	}
-}
-
-func New(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &FeilongProvider{
-			version: version,
+			ConfigureFunc: providerConfigure,
 		}
 	}
+}
+
+type apiClient struct {
+	Client feilong_api.Client
+}
+
+func providerConfigure(d *schema.ResourceData) (any, error) {
+	connector := d.Get("connector").(string)
+
+	client, err := feilong_api.NewClient(&connector)
+	if err != nil {
+		return nil, err
+	}
+
+	return &apiClient{*client}, nil
 }
