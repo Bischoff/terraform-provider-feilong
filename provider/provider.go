@@ -92,14 +92,14 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	// Check that the z/VM connector answers and is of expected version
-	httpResp, err := client.GetZvmCloudConnectorVersion()
+	// Check that the z/VM connector answers and that the API is of expected version
+	result, err := client.GetFeilongVersion()
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to contact z/VM connector, got error: %s", err))
 		return
 	}
-	if httpResp.Output.Version != "1.6.6" {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Expected z/VM connector version 1.6.6, got: %s", httpResp.Output.Version))
+	if result.Output.APIVersion != "1.0" {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Expected Feilong API version 1.0, got: %s", result.Output.APIVersion))
 		return
 	}
 
