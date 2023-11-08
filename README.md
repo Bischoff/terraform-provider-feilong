@@ -2,7 +2,7 @@
 
 This terraform provider enables to deploy s390 virtual machines on z/VM via Feilong.
 
-NOTE: this is the branch for terraform 0.13.4 (protocol version 5).
+**NOTE:** this is the branch for terraform 0.13.4 (protocol version 5).
 The code for terraform 1.5.5 (protocol version 6) is in `main` branch.
 
 
@@ -42,7 +42,7 @@ In your `main.tf` file, use:
 
 ```terraform
 terraform {
-  required_version = ">= 0.13"
+  required_version = ">= 0.13.4"
   required_providers {
     feilong = {
       source = "bischoff/feilong"
@@ -73,7 +73,14 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+In order to run the full suite of Acceptance tests, run `make testacc`. You need a real Feilong deployment for it to work:
+
+```bash
+$ # specify address of Feilong connector
+$ export ZVM_CONNECTOR="1.2.3.4"
+$ # run the tests
+$ make testacc
+```
 
 
 ## License

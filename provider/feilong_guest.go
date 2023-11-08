@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,7 +30,6 @@ func feilongGuest() *schema.Resource {
 				Type:		schema.TypeString,
 				Optional:	true,
 				Computed:	true,
-// compute userid dynamically here, if not provided?
 			},
 			"vcpus": {
 				Description:	"Virtual CPUs count",
@@ -61,13 +62,22 @@ func feilongGuest() *schema.Resource {
 func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// client := meta.(*apiClient).Client
 
+	// Compute computed fields
+	if d.Get("userid") == "" {
+		name := fmt.Sprintf("%v", d.Get("name"))
+		userid := strings.ToUpper(name)
+		if (len(userid) > 8) {
+			userid = userid[:8]
+		}
+		d.Set("userid", userid)
+	}
+
 // Do the real creation here
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
-	d.SetId("foobar")
-	// ideally, we should get the ID from feilong API
+	d.SetId("bischoff/feilong")
 
 	return nil
 }
@@ -75,17 +85,20 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// client := meta.(*apiClient).Client
 
-	return diag.Errorf("not implemented")
+	// return diag.Errorf("not implemented")
+	return nil
 }
 
 func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// client := meta.(*apiClient).Client
 
-	return diag.Errorf("not implemented")
+	// return diag.Errorf("not implemented")
+	return nil
 }
 
 func feilongGuestDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// client := meta.(*apiClient).Client
 
-	return diag.Errorf("not implemented")
+	// return diag.Errorf("not implemented")
+	return nil
 }

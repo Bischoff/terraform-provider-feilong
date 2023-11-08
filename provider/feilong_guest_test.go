@@ -1,32 +1,37 @@
 package provider
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccFeilongGuest(t *testing.T) {
-	t.Skip("resource not yet implemented, remove this once you add your own code")
+const (
+	testConfig = `
+resource "feilong_guest" "opensuse" {
+  name = "leap"
+  image = "opensuse155"
+}
+`
+)
 
-	resource.UnitTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: providerFactories,
-		Steps: []resource.TestStep{
+func TestAccFeilongGuest(t *testing.T) {
+	resource.UnitTest(t, resource.TestCase {
+		PreCheck:		func() { testAccPreCheck(t) },
+		ProviderFactories:	providerFactories,
+		Steps:			[]resource.TestStep {
 			{
-				Config: testAccFeilongGuest,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(
-						"feilong_guest.foo", "sample_attribute", regexp.MustCompile("^ba")),
+				Config: testConfig,
+				Check:	resource.ComposeTestCheckFunc(
+// check that guest is really created!
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "name", "leap"),		// required
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "userid", "LEAP"),		// derived from name: all caps, 8 chars max
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "vcpus", "1"),			// default value
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "memory", "512M"),		// default value
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "disk", "10G"),		// default value
+					resource.TestCheckResourceAttr("feilong_guest.opensuse", "image", "opensuse155"),	// required
 				),
 			},
 		},
 	})
 }
-
-const testAccFeilongGuest = `
-resource "feilong_guest" "foo" {
-  sample_attribute = "bar"
-}
-`
