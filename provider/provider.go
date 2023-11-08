@@ -45,13 +45,13 @@ func providerConfigure(d *schema.ResourceData) (any, error) {
 		return nil, err
 	}
 
-	// Check that the z/VM connector answers and is of expected version
-	httpResp, err := client.GetZvmCloudConnectorVersion()
+	// Check that the z/VM connector answers and that the API is of expected version
+	result, err := client.GetFeilongVersion()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to contact z/VM connector, got error: %s", err)
 	}
-	if httpResp.Output.Version != "1.6.6" {
-		return nil, fmt.Errorf("Expected z/VM connector version 1.6.6, got: %s", httpResp.Output.Version)
+	if result.Output.APIVersion != "1.0" {
+		return nil, fmt.Errorf("Expected Feilong API version 1.0, got: %s", result.Output.APIVersion)
 	}
 
 	return &apiClient{*client}, nil

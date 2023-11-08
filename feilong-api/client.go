@@ -2,12 +2,14 @@ package feilong_api
 
 import (
 	"fmt"
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
-const DefaultHost string = "localhost:35000"
+const defaultHost string = "localhost:35000"
+const timeout time.Duration = 10 * time.Second
 
 type Client struct {
 	Host		string
@@ -16,8 +18,8 @@ type Client struct {
 
 func NewClient(connector *string) (*Client, error) {
 	c := Client{
-		HTTPClient:	&http.Client{Timeout: 10 * time.Second},
-		Host:		DefaultHost,
+		HTTPClient:	&http.Client{Timeout: timeout},
+		Host:		defaultHost,
 	}
 
 	if connector != nil {
@@ -28,9 +30,10 @@ func NewClient(connector *string) (*Client, error) {
 }
 
 // For internal use
-func (c *Client) doRequest(method string, path string) ([]byte, error) {
+func (c *Client) doRequest(method string, path string, params []byte) ([]byte, error) {
 	url := "http://" + c.Host + path
-	req, err := http.NewRequest(method, url, nil)
+	reader := bytes.NewReader(params)
+	req, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +51,7 @@ func (c *Client) doRequest(method string, path string) ([]byte, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, body)
+		return nil, fmt.Errorf("HTTP status: %d, body: %s", res.StatusCode, body)
 	}
 
 	return body, err
