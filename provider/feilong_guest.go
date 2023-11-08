@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,7 +55,6 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription:	"System name for system/Z",
 				Optional:		true,
 				Computed:		true,
-// compute userid dynamically here, if not provided?
 			},
 			"vcpus": schema.Int64Attribute {
 				MarkdownDescription:	"Virtual CPUs count",
@@ -99,9 +99,18 @@ func (r *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Compute computed fields
+	if data.UserID.ValueString() == "" {
+		name := data.Name.ValueString()
+		userid := strings.ToUpper(name)
+		if (len(userid) > 8) {
+			userid = userid[:8]
+		}
+		data.UserID = types.StringValue(userid)
 	}
 
 // Do the real creation here
@@ -118,7 +127,6 @@ func (r *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -140,7 +148,6 @@ func (r *FeilongGuest) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -162,7 +169,6 @@ func (r *FeilongGuest) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
