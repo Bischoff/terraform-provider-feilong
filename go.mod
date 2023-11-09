@@ -2,10 +2,8 @@ module github.com/Bischoff/terraform-provider-feilong
 
 go 1.19
 
-replace github.com/Bischoff/feilong_api => ./feilong-api
-
 require (
-	github.com/Bischoff/feilong_api v0.0.0-00010101000000-000000000000
+	github.com/Bischoff/feilong-client-go v0.0.1
 	github.com/hashicorp/terraform-plugin-framework v1.4.2
 	github.com/hashicorp/terraform-plugin-go v0.19.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
-	"github.com/Bischoff/feilong_api"
+	"github.com/Bischoff/feilong-client-go"
 )
 
 // Ensure FeilongProvider satisfies various provider interfaces.
@@ -82,7 +82,7 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 	}
 
 	// Create a new Feilong client using the configuration values
-	client, err := feilong_api.NewClient(&connector)
+	client, err := feilong.NewClient(&connector)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create Feilong API Client",

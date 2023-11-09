@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/Bischoff/feilong_api"
+	"github.com/Bischoff/feilong-client-go"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +25,7 @@ func NewFeilongGuest() resource.Resource {
 
 // FeilongGuest defines the resource implementation.
 type FeilongGuest struct {
-	client *feilong_api.Client
+	client *feilong.Client
 }
 
 // FeilongGuestModel describes the resource data model.
@@ -89,7 +89,7 @@ func (r *FeilongGuest) Configure(ctx context.Context, req resource.ConfigureRequ
 		return
 	}
 
-	client := req.ProviderData.(*feilong_api.Client)
+	client := req.ProviderData.(*feilong.Client)
 
 	r.client = client
 }
