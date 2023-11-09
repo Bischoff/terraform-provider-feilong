@@ -81,6 +81,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 
 	// Compute values passed to Feilong API but not part of data model
+	size := d.Get("disk").(string)
 	vcpus := d.Get("vcpus").(int)
 	memory, err := convertToMegabytes(d.Get("memory").(string))
 	if err != nil {
@@ -88,21 +89,29 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 
 	// Create the guest
-//	client := meta.(*apiClient).Client
+	client := meta.(*apiClient).Client
+	diskList := []feilong.CreateGuestDisk {
+		{
+			Size:		size,
+			IsBootDisk:	true,
+		},
+	}
 	createGuest := feilong.CreateGuestGuest {
 		UserId:		userid,
 		VCPUs:		vcpus,
 		Memory:		memory,
-//		DiskList	[]feilong.CreateGuestDisk,
+		DiskList:	diskList,
 	}
 	createParams := feilong.CreateGuestParams {
 		Guest:		createGuest,
 	}
 
-//	result, err := client.CreateGuest(&createParams)
-//	if err != nil {
-//		return diag.Errorf("%s", err)
-//	}
+	_, err = client.CreateGuest(&createParams)
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
+
+// Deploy the guest
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
