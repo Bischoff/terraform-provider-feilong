@@ -3,6 +3,9 @@ package provider
 import (
 	"context"
 	"strings"
+	"strconv"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,7 +34,7 @@ type FeilongGuest struct {
 // FeilongGuestModel describes the resource data model.
 type FeilongGuestModel struct {
 	Name	types.String	`tfsdk:"name"`
-	UserID	types.String	`tfsdk:"userid"`
+	UserId	types.String	`tfsdk:"userid"`
 	VCPUs	types.Int64	`tfsdk:"vcpus"`
 	Memory	types.String	`tfsdk:"memory"`
 	Disk	types.String	`tfsdk:"disk"`
@@ -83,7 +86,7 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 	}
 }
 
-func (r *FeilongGuest) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (guest *FeilongGuest) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -91,10 +94,10 @@ func (r *FeilongGuest) Configure(ctx context.Context, req resource.ConfigureRequ
 
 	client := req.ProviderData.(*feilong.Client)
 
-	r.client = client
+	guest.client = client
 }
 
-func (r *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data FeilongGuestModel
 
 	// Read Terraform plan data into the model
@@ -104,16 +107,40 @@ func (r *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Compute computed fields
-	if data.UserID.ValueString() == "" {
+	userid := data.UserId.ValueString()
+	if userid == "" {
 		name := data.Name.ValueString()
 		userid := strings.ToUpper(name)
 		if (len(userid) > 8) {
 			userid = userid[:8]
 		}
-		data.UserID = types.StringValue(userid)
+		data.UserId = types.StringValue(userid)
 	}
 
-// Do the real creation here
+	// Compute values passed to Feilong API but not part of data model
+	vcpus := int(data.VCPUs.ValueInt64())
+	memory, err := convertToMegabytes(data.Memory.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+
+	// Create the guest
+//	client := guest.client
+	createGuest := feilong.CreateGuestGuest	{
+		UserId:		userid,
+		VCPUs:		vcpus,
+		Memory:		memory,
+//		DiskList	[]feilong.CreateGuestDisk,
+	}
+	createParams := feilong.CreateGuestParams {
+		Guest:		createGuest,
+	}
+
+//	result, err := client.CreateGuest(&createParams)
+//	if err != nil {
+//		fmt.Errorf("%s", err)
+//	}
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
@@ -122,7 +149,7 @@ func (r *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data FeilongGuestModel
 
 	// Read Terraform prior state data into the model
@@ -143,7 +170,7 @@ func (r *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *FeilongGuest) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data FeilongGuestModel
 
 	// Read Terraform plan data into the model
@@ -164,7 +191,7 @@ func (r *FeilongGuest) Update(ctx context.Context, req resource.UpdateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *FeilongGuest) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (guest *FeilongGuest) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data FeilongGuestModel
 
 	// Read Terraform prior state data into the model
@@ -182,6 +209,33 @@ func (r *FeilongGuest) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// }
 }
 
-func (r *FeilongGuest) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (guest *FeilongGuest) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func convertToMegabytes(sizeWithUnit string) (int, error) {
+	lastButOne := len(sizeWithUnit) - 1
+
+	size, err := strconv.Atoi(sizeWithUnit[:lastButOne])
+	if (err != nil) {
+		return 0, err
+	}
+
+	unit := sizeWithUnit[lastButOne:]
+
+	switch unit {
+		case "B":
+			size = size / 1_048_576
+		case "K":
+			size = size / 1_024
+		case "M":
+			// (nothing to do)
+		case "G":
+			size = size * 1_024
+		case "T":
+			size = size * 1_048_576
+		default:
+			return 0, errors.New("Unit must be one of B K M G T")
+	}
+	return size, nil
 }
