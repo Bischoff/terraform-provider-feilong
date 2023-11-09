@@ -2,12 +2,15 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strings"
+	"strconv"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/Bischoff/feilong-client-go"
 )
 
 func feilongGuest() *schema.Resource {
@@ -60,23 +63,45 @@ func feilongGuest() *schema.Resource {
 }
 
 func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// client := meta.(*apiClient).Client
-
 	// Compute computed fields
-	if d.Get("userid") == "" {
-		name := fmt.Sprintf("%v", d.Get("name"))
-		userid := strings.ToUpper(name)
+	userid := d.Get("userid").(string)
+	if userid == "" {
+		name := d.Get("name").(string)
+		userid = strings.ToUpper(name)
 		if (len(userid) > 8) {
 			userid = userid[:8]
 		}
 		d.Set("userid", userid)
 	}
 
-// Do the real creation here
+	// Compute values passed to Feilong API but not part of data model
+	vcpus := d.Get("vcpus").(int)
+	memory, err := convertToMegabytes(d.Get("memory").(string))
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
+
+	// Create the guest
+//	client := meta.(*apiClient).Client
+	createGuest := feilong.CreateGuestGuest {
+		UserId:		userid,
+		VCPUs:		vcpus,
+		Memory:		memory,
+//		DiskList	[]feilong.CreateGuestDisk,
+	}
+	createParams := feilong.CreateGuestParams {
+		Guest:		createGuest,
+	}
+
+//	result, err := client.CreateGuest(&createParams)
+//	if err != nil {
+//		return diag.Errorf("%s", err)
+//	}
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
+// not sure what this is for
 	d.SetId("bischoff/feilong")
 
 	return nil
@@ -101,4 +126,31 @@ func feilongGuestDelete(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	// return diag.Errorf("not implemented")
 	return nil
+}
+
+func convertToMegabytes(sizeWithUnit string) (int, error) {
+	lastButOne := len(sizeWithUnit) - 1
+
+	size, err := strconv.Atoi(sizeWithUnit[:lastButOne])
+	if (err != nil) {
+		return 0, err
+	}
+
+	unit := sizeWithUnit[lastButOne:]
+
+	switch unit {
+		case "B":
+			size = size / 1_048_576
+		case "K":
+			size = size / 1_024
+		case "M":
+			// (nothing to do)
+		case "G":
+			size = size * 1_024
+		case "T":
+			size = size * 1_048_576
+		default:
+			return 0, errors.New("Unit must be one of B K M G T")
+	}
+	return size, nil
 }
