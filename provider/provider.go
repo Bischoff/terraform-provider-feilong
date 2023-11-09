@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Bischoff/feilong_api"
+	"github.com/Bischoff/feilong-client-go"
 )
 
 func New(version string) func() *schema.Provider {
@@ -34,13 +34,13 @@ func New(version string) func() *schema.Provider {
 }
 
 type apiClient struct {
-	Client feilong_api.Client
+	Client feilong.Client
 }
 
 func providerConfigure(d *schema.ResourceData) (any, error) {
 	connector := d.Get("connector").(string)
 
-	client, err := feilong_api.NewClient(&connector)
+	client, err := feilong.NewClient(&connector)
 	if err != nil {
 		return nil, err
 	}
