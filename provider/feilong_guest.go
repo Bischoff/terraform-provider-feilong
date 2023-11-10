@@ -131,6 +131,8 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
 		return
 	}
+	image := data.Image.ValueString()
+	hostname := data.Name.ValueString()
 
 	// Create the guest
 	client := guest.client
@@ -149,14 +151,24 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	createParams := feilong.CreateGuestParams {
 		Guest:		createGuest,
 	}
-
 	_, err = client.CreateGuest(&createParams)
 	if err != nil {
 		resp.Diagnostics.AddError("Creation Error", fmt.Sprintf("Got error: %s", err))
 		return
 	}
 
-// Deploy the guest
+// Create first network interface
+
+	// Deploy the guest
+	deployParams := feilong.DeployGuestParams {
+		Image:		image,
+		Hostname:	hostname,
+	}
+	err = client.DeployGuest(userid, &deployParams)
+	if err != nil {
+		resp.Diagnostics.AddError("Deployment Error", fmt.Sprintf("Got error: %s", image, hostname, err))
+		return
+	}
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
