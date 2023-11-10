@@ -46,10 +46,7 @@ type apiClient struct {
 func providerConfigure(d *schema.ResourceData) (any, error) {
 	connector := d.Get("connector").(string)
 
-	client, err := feilong.NewClient(&connector)
-	if err != nil {
-		return nil, err
-	}
+	client := feilong.NewClient(&connector, nil)
 
 	// Check that the z/VM connector answers and that the API is of expected version
 	result, err := client.GetFeilongVersion()

@@ -137,9 +137,15 @@ func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 }
 
 func feilongGuestDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// client := meta.(*apiClient).Client
+	client := meta.(*apiClient).Client
 
-	// return diag.Errorf("not implemented")
+	userid := d.Get("userid").(string)
+
+	err := client.DeleteGuest(userid)
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
+
 	return nil
 }
 
