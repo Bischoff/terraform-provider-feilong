@@ -87,12 +87,15 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	if err != nil {
 		return diag.Errorf("%s", err)
 	}
+	image := d.Get("image").(string)
+	hostname := d.Get("name").(string)
 
 	// Create the guest
 	client := meta.(*apiClient).Client
 	diskList := []feilong.CreateGuestDisk {
 		{
 			Size:		size,
+Format:		"ext4",
 			IsBootDisk:	true,
 		},
 	}
@@ -111,7 +114,17 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.Errorf("%s", err)
 	}
 
-// Deploy the guest
+// Create first network interface
+
+	// Deploy the guest
+	deployParams := feilong.DeployGuestParams {
+		Image:          image,
+		Hostname:       hostname,
+	}
+	err = client.DeployGuest(userid, &deployParams)
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")

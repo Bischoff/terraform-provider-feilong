@@ -2,4 +2,5 @@
 
 FEATURES:
  * first skeleton for provider
- * first API function
+ * can create and delete guests
+ * unfinished acceptance tests
