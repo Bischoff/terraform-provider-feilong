@@ -88,15 +88,7 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 	}
 
 	// Create a new Feilong client using the configuration values
-	client, err := feilong.NewClient(&connector)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to Create Feilong API Client",
-			"An unexpected error occurred when creating the HashiCups API client.\n\n" +
-			"Feilong Client Error: "+err.Error(),
-		)
-		return
-	}
+	client := feilong.NewClient(&connector, nil)
 
 	// Check that the z/VM connector answers and that the API is of expected version
 	result, err := client.GetFeilongVersion()
