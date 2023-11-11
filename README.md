@@ -87,14 +87,16 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
-In order to run the full suite of acceptance tests, run `make testacc`. You need a real Feilong deployment for it to work:
+In order to run the full suite of acceptance tests, you need a real Feilong deployment. You also need to upload an image named `testacc`. Once that is done, run `make testacc`:
 
 ```bash
-$ # specify address of Feilong connector
+$ # specify the address of the Feilong connector
 $ export ZVM_CONNECTOR="1.2.3.4"
 $ # run the tests
 $ make testacc
 ```
+
+Note: currently hitting this bug: https://github.com/hashicorp/terraform-plugin-testing/issues/185
 
 
 ## License

@@ -116,7 +116,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	userid := data.UserId.ValueString()
 	if userid == "" {
 		name := data.Name.ValueString()
-		userid := strings.ToUpper(name)
+		userid = strings.ToUpper(name)
 		if (len(userid) > 8) {
 			userid = userid[:8]
 		}
@@ -166,7 +166,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {
-		resp.Diagnostics.AddError("Deployment Error", fmt.Sprintf("Got error: %s", image, hostname, err))
+		resp.Diagnostics.AddError("Deployment Error", fmt.Sprintf("Got error: %s", err))
 		return
 	}
 
