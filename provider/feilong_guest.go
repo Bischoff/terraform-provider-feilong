@@ -45,6 +45,7 @@ type FeilongGuestModel struct {
 	Memory	types.String	`tfsdk:"memory"`
 	Disk	types.String	`tfsdk:"disk"`
 	Image	types.String	`tfsdk:"image"`
+	Mac	types.String	`tfsdk:"mac"`
 }
 
 func (r *FeilongGuest) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,11 +58,11 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 		Attributes: map[string]schema.Attribute {
 			"name": schema.StringAttribute {
-				MarkdownDescription:	"System name for Linux",
+				MarkdownDescription:	"System name for linux",
 				Required:		true,
 			},
 			"userid": schema.StringAttribute {
-				MarkdownDescription:	"System name for system/Z",
+				MarkdownDescription:	"System name for z/VM",
 				Optional:		true,
 				Computed:		true,
 			},
@@ -78,7 +79,7 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Default:		stringdefault.StaticString("512M"),
 			},
 			"disk": schema.StringAttribute {
-				MarkdownDescription:	"Disk size with unit (G, M, k)",
+				MarkdownDescription:	"Disk size of first disk with unit (G, M, k)",
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString("10G"),
@@ -87,6 +88,12 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"image": schema.StringAttribute {
 				MarkdownDescription:	"Image name",
 				Required:		true,
+			},
+			"mac": schema.StringAttribute {
+				MarkdownDescription:	"MAC address of first interface",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString(""),
 			},
 		},
 	}
@@ -123,7 +130,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		data.UserId = types.StringValue(userid)
 	}
 
-	// Compute values passed to Feilong API but not part of data model
+	// Compute values passed to Feilong API but not part of the data model
 	size := data.Disk.ValueString()
 	vcpus := int(data.VCPUs.ValueInt64())
 	memory, err := convertToMegabytes(data.Memory.ValueString())
@@ -133,6 +140,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 	image := data.Image.ValueString()
 	hostname := data.Name.ValueString()
+	mac := data.Mac.ValueString()
 
 	// Create the guest
 	client := guest.client
@@ -142,14 +150,11 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 			IsBootDisk:	true,
 		},
 	}
-	createGuest := feilong.CreateGuestGuest	{
+	createParams := feilong.CreateGuestParams {
 		UserId:		userid,
 		VCPUs:		vcpus,
 		Memory:		memory,
 		DiskList:	diskList,
-	}
-	createParams := feilong.CreateGuestParams {
-		Guest:		createGuest,
 	}
 	_, err = client.CreateGuest(&createParams)
 	if err != nil {
@@ -157,7 +162,15 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-// Create first network interface
+	// Create the first network interface
+	createNICParams := feilong.CreateGuestNICParams {
+		MACAddress:     mac,
+	}
+	err = client.CreateGuestNIC(userid, &createNICParams)
+	if err != nil {
+		resp.Diagnostics.AddError("NIC Creation Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
 
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {

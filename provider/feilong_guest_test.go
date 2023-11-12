@@ -23,6 +23,7 @@ const (
 resource "feilong_guest" "testacc" {
   name = "testacc"
   image = "testacc"
+  mac = "12:34:56:78:9a:bc"
 }
 `
 	rn = "feilong_guest.testacc"
@@ -47,13 +48,16 @@ func testCheckZvmGuest() resource.TestCheckFunc {
 		nIpl := 0
 		mdisk := regexp.MustCompile(`^MDISK 0100 3390 .* 14564`) // 14564 cyl == 10 GiB
 		nMdisk := 0
+		nicdef := regexp.MustCompile(`^NICDEF .* MACID 789ABC`) // xx:xx:xx:78:9a:bc
+		nNicdef := 0
 		for _, s := range result.Output.UserDirect {
 			if (user.MatchString(s)) { nUser++; }
 			if (command.MatchString(s)) { nCommand++; }
 			if (ipl.MatchString(s)) { nIpl++; }
 			if (mdisk.MatchString(s)) { nMdisk++; }
+			if (nicdef.MatchString(s)) { nNicdef++; }
 		}
-		if nUser != 1 || nCommand != 1 || nIpl != 1 || nMdisk != 1 {
+		if nUser != 1 || nCommand != 1 || nIpl != 1 || nMdisk != 1 || nNicdef != 1 {
 			msg := "Invalid z/VM definition:\n"
 			for _, s := range result.Output.UserDirect {
 				msg += s + "\n"
@@ -80,6 +84,7 @@ func TestAccFeilongGuest(t *testing.T) {
 					resource.TestCheckResourceAttr(rn, "memory", "512M"),		// default value
 					resource.TestCheckResourceAttr(rn, "disk", "10G"),		// default value
 					resource.TestCheckResourceAttr(rn, "image", "testacc"),		// required
+					resource.TestCheckResourceAttr(rn, "mac", "12:34:56:78:9a:bc"),	// optional
 
 					testCheckZvmGuest(),						// check that the guest is really created
 				),
