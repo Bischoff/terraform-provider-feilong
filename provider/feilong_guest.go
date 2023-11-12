@@ -172,6 +172,17 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	// Couple the first network interface to the virtual switch
+	updateNICParams := feilong.UpdateGuestNICParams {
+		Couple:         true,
+		VSwitch:        "DEVNET",
+	}
+	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
+	if err != nil {
+		resp.Diagnostics.AddError("NIC Coupling Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
