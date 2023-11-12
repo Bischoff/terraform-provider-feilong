@@ -48,7 +48,7 @@ func testCheckZvmGuest() resource.TestCheckFunc {
 		nIpl := 0
 		mdisk := regexp.MustCompile(`^MDISK 0100 3390 .* 14564`) // 14564 cyl == 10 GiB
 		nMdisk := 0
-		nicdef := regexp.MustCompile(`^NICDEF .* MACID 789ABC`) // xx:xx:xx:78:9a:bc
+		nicdef := regexp.MustCompile(`^NICDEF 1000 .* MACID 789ABC`) // xx:xx:xx:78:9a:bc
 		nNicdef := 0
 		for _, s := range result.Output.UserDirect {
 			if (user.MatchString(s)) { nUser++; }
