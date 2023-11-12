@@ -30,12 +30,12 @@ func feilongGuest() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Description:	"System name for Linux",
+				Description:	"System name for linux",
 				Type:		schema.TypeString,
 				Required:	true,
 			},
 			"userid": {
-				Description:	"System name for system/Z",
+				Description:	"System name for z/VM",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Computed:	true,
@@ -53,7 +53,7 @@ func feilongGuest() *schema.Resource {
 				Default:	"512M",
 			},
 			"disk": {
-				Description:	"Disk size with unit (G, M, k)",
+				Description:	"Disk size of first disk with unit (G, M, k)",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Default:	"10G",
@@ -63,6 +63,12 @@ func feilongGuest() *schema.Resource {
 				Description:	"Image name",
 				Type:		schema.TypeString,
 				Required:	true,
+			},
+			"mac": {
+				Description:	"MAC address of first interface",
+				Type:		schema.TypeString,
+				Optional:	true,
+				Default:	"",
 			},
 		},
 	}
@@ -80,7 +86,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		d.Set("userid", userid)
 	}
 
-	// Compute values passed to Feilong API but not part of data model
+	// Compute values passed to Feilong API but not part of the data model
 	size := d.Get("disk").(string)
 	vcpus := d.Get("vcpus").(int)
 	memory, err := convertToMegabytes(d.Get("memory").(string))
@@ -89,32 +95,35 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	image := d.Get("image").(string)
 	hostname := d.Get("name").(string)
+	mac := d.Get("mac").(string)
 
 	// Create the guest
 	client := meta.(*apiClient).Client
 	diskList := []feilong.CreateGuestDisk {
 		{
 			Size:		size,
-Format:		"ext4",
 			IsBootDisk:	true,
 		},
 	}
-	createGuest := feilong.CreateGuestGuest {
+	createParams := feilong.CreateGuestParams {
 		UserId:		userid,
 		VCPUs:		vcpus,
 		Memory:		memory,
 		DiskList:	diskList,
 	}
-	createParams := feilong.CreateGuestParams {
-		Guest:		createGuest,
-	}
-
 	_, err = client.CreateGuest(&createParams)
 	if err != nil {
 		return diag.Errorf("%s", err)
 	}
 
-// Create first network interface
+	// Create the first network interface
+	createNICParams := feilong.CreateGuestNICParams {
+		MACAddress:	mac,
+	}
+	err = client.CreateGuestNIC(userid, &createNICParams)
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
 
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
@@ -129,8 +138,8 @@ Format:		"ext4",
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
-// not sure what this is for
-	d.SetId("bischoff/feilong")
+	// Set resource identifier
+	d.SetId(userid)
 
 	return nil
 }

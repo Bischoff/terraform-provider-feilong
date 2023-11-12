@@ -52,17 +52,21 @@ terraform {
 }
 
 provider "feilong" {
-  connector = "1.2.3.4" // the IP address of your z/VM cloud connector
-                        // (i.e. the VM where Feilong runs)
+  connector = "1.2.3.4"     // IP address or domain name of your z/VM cloud connector
+                            // (i.e. the VM where Feilong runs)
+                            // if omitted, will use variable $ZVM_CONNECTOR
 }
 
 resource "feilong_guest" "opensuse" {
-  name   = "leap"       // system name for Linux
-  userid = "LINUX097"   // system name for system/Z
-  vcpus  = 2            // virtual CPUs count
-  memory = "2G"         // memory size
-  disk = "20G"          // disk size
-  image = "opensuse155" // image
+  name   = "leap"           // system name for linux
+  memory = "2G"             // memory size
+  disk = "20G"              // disk size of first disk
+  image = "opensuse155"     // image
+
+  // optional parameters:
+  userid = "LINUX097"       // system name for z/VM
+  vcpus  = 2                // virtual CPUs count
+  mac = "12:34:56:78:9a:bc" // MAC address of first interface
 }
 ```
 
