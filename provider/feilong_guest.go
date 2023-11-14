@@ -137,10 +137,16 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
-		Image:          image,
-		Hostname:       hostname,
+		Image:		image,
+		Hostname:	hostname,
 	}
 	err = client.DeployGuest(userid, &deployParams)
+	if err != nil {
+		return diag.Errorf("%s", err)
+	}
+
+	// Start the guest
+	err = client.StartGuest(userid)
 	if err != nil {
 		return diag.Errorf("%s", err)
 	}
