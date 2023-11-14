@@ -164,7 +164,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the first network interface
 	createNICParams := feilong.CreateGuestNICParams {
-		MACAddress:     mac,
+		MACAddress:	mac,
 	}
 	err = client.CreateGuestNIC(userid, &createNICParams)
 	if err != nil {
@@ -192,6 +192,12 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	if err != nil {
 		resp.Diagnostics.AddError("Deployment Error", fmt.Sprintf("Got error: %s", err))
 		return
+	}
+
+	// Start the guest
+	err = client.StartGuest(userid)
+	if err != nil {
+		resp.Diagnostics.AddError("Startup Error", fmt.Sprintf("Got error: %s", err))
 	}
 
 	// Write logs using the tflog package
