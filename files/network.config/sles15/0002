@@ -1,0 +1,1 @@
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="qeth", KERNELS=="0.0.1000", ATTR{type}=="1", KERNEL=="eth*", NAME="eth1000"

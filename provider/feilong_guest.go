@@ -138,6 +138,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
+		TransportFiles:	"/tmp/s15sp3/network.doscript,/tmp/s15sp3/cfgdrive.iso",
 		Hostname:	hostname,
 	}
 	err = client.DeployGuest(userid, &deployParams)

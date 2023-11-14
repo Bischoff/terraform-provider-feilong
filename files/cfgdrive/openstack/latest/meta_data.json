@@ -1,0 +1,11 @@
+{
+  "keys": [
+    {
+      "name": "Public Key",
+      "type": "ssh",
+      "data": "PUBLIC_KEY"
+    }
+  ],
+  "hostname": "HOSTNAME",
+  "name": "NAME"
+}
