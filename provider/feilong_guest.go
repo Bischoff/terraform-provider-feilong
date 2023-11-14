@@ -58,7 +58,7 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 		Attributes: map[string]schema.Attribute {
 			"name": schema.StringAttribute {
-				MarkdownDescription:	"System name for linux",
+				MarkdownDescription:	"Arbitrary name for the resource",
 				Required:		true,
 			},
 			"userid": schema.StringAttribute {
@@ -120,10 +120,10 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Compute computed fields
+	resourceName := data.Name.ValueString()
 	userid := data.UserId.ValueString()
 	if userid == "" {
-		name := data.Name.ValueString()
-		userid = strings.ToUpper(name)
+		userid = strings.ToUpper(resourceName)
 		if (len(userid) > 8) {
 			userid = userid[:8]
 		}
@@ -139,7 +139,6 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	image := data.Image.ValueString()
-	hostname := data.Name.ValueString()
 	mac := data.Mac.ValueString()
 
 	// Create the guest
@@ -186,7 +185,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
-		Hostname:	hostname,
+		TransportFiles:	"/tmp/s15sp3/network.doscript,/tmp/s15sp3/cfgdrive.iso",
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {
