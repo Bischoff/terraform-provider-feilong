@@ -1,4 +1,8 @@
 {
+  "uuid": "NAME",
+  "public_keys": {
+    "Public Key": "PUBLIC_KEY"
+  },
   "keys": [
     {
       "name": "Public Key",

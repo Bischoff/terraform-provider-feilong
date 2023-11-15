@@ -1,6 +1,6 @@
 module github.com/Bischoff/terraform-provider-feilong
 
-go 1.19
+go 1.21
 
 require (
 	github.com/Bischoff/feilong-client-go v0.0.1

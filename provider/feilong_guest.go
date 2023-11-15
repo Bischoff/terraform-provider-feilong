@@ -30,7 +30,7 @@ func feilongGuest() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Description:	"System name for linux",
+				Description:	"Arbitrary name for the resource",
 				Type:		schema.TypeString,
 				Required:	true,
 			},
@@ -47,7 +47,7 @@ func feilongGuest() *schema.Resource {
 				Default:	1,
 			},
 			"memory": {
-				Description:	"Memory with unit (G, M, k)",
+				Description:	"Memory size with unit (G, M, k)",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Default:	"512M",
@@ -70,16 +70,26 @@ func feilongGuest() *schema.Resource {
 				Optional:	true,
 				Default:	"",
 			},
+			"cloudinit_params": {
+				Description:	"Path to cloud-init parameters file",
+				Type:		schema.TypeString,
+				Optional:	true,
+			},
+			"network_params": {
+				Description:	"Path to network parameters file",
+				Type:		schema.TypeString,
+				Optional:	true,
+			},
 		},
 	}
 }
 
 func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Compute computed fields
+	resourceName := d.Get("name").(string)
 	userid := d.Get("userid").(string)
 	if userid == "" {
-		name := d.Get("name").(string)
-		userid = strings.ToUpper(name)
+		userid = strings.ToUpper(resourceName)
 		if (len(userid) > 8) {
 			userid = userid[:8]
 		}
@@ -91,11 +101,29 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	vcpus := d.Get("vcpus").(int)
 	memory, err := convertToMegabytes(d.Get("memory").(string))
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("Conversion Error: %s", err)
 	}
 	image := d.Get("image").(string)
-	hostname := d.Get("name").(string)
 	mac := d.Get("mac").(string)
+	networkParams := d.Get("network_params").(string)
+	cloudinitParams := d.Get("cloudinit_params").(string)
+	localUser := meta.(*apiClient).LocalUser
+	transportFiles := ""
+	remoteHost := ""
+	if networkParams != "" {
+		if cloudinitParams != "" {
+			transportFiles = networkParams + "," + cloudinitParams
+			remoteHost = localUser
+		} else {
+			transportFiles = networkParams
+			remoteHost = localUser
+		}
+	} else {
+		if cloudinitParams != "" {
+			transportFiles = cloudinitParams
+			remoteHost = localUser
+		}
+	}
 
 	// Create the guest
 	client := meta.(*apiClient).Client
@@ -113,7 +141,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	_, err = client.CreateGuest(&createParams)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("Creation Error: %s", err)
 	}
 
 	// Create the first network interface
@@ -122,7 +150,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	err = client.CreateGuestNIC(userid, &createNICParams)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("NIC Creation Error: %s", err)
 	}
 
 	// Couple the first network interface to the virtual switch
@@ -132,31 +160,31 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("NIC Coupling Error: %s", err)
 	}
 
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
-		TransportFiles:	"/tmp/s15sp3/network.doscript,/tmp/s15sp3/cfgdrive.iso",
-		Hostname:	hostname,
+		TransportFiles:	transportFiles,
+		RemoteHost:	remoteHost,
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("Deployment Error: %s", err)
 	}
 
 	// Start the guest
 	err = client.StartGuest(userid)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("Startup Error: %s", err)
 	}
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
 	// Set resource identifier
-	d.SetId(userid)
+	d.SetId(resourceName)
 
 	return nil
 }
@@ -182,11 +210,13 @@ func feilongGuestDelete(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	err := client.DeleteGuest(userid)
 	if err != nil {
-		return diag.Errorf("%s", err)
+		return diag.Errorf("Deletion Error: %s", err)
 	}
 
 	return nil
 }
+
+// For internal use
 
 func convertToMegabytes(sizeWithUnit string) (int, error) {
 	lastButOne := len(sizeWithUnit) - 1

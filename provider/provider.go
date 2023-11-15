@@ -22,7 +22,13 @@ func New(version string) func() *schema.Provider {
 					Type:		schema.TypeString,
 					Required:	true,
 					DefaultFunc:	schema.EnvDefaultFunc("ZVM_CONNECTOR", nil),
-					Description:	"Domain name or address of the z/VM cloud connector",
+					Description:	"Domain name or address of the z/VM connector",
+				},
+				"local_user": {
+					Type:		schema.TypeString,
+					Optional:	true,
+					Description:	"Where parameter files are uploaded from",
+
 				},
 			},
 
@@ -31,6 +37,8 @@ func New(version string) func() *schema.Provider {
 			//},
 
 			ResourcesMap: map[string]*schema.Resource {
+				"feilong_cloudinit_params": feilongCloudinitParams(),
+				"feilong_network_params": feilongNetworkParams(),
 				"feilong_guest": feilongGuest(),
 			},
 
@@ -40,13 +48,14 @@ func New(version string) func() *schema.Provider {
 }
 
 type apiClient struct {
-	Client feilong.Client
+	Client		feilong.Client
+	LocalUser	string
 }
 
 func providerConfigure(d *schema.ResourceData) (any, error) {
 	connector := d.Get("connector").(string)
-
 	client := feilong.NewClient(&connector, nil)
+	localUser := d.Get("local_user").(string)
 
 	// Check that the z/VM connector answers and that the API is of expected version
 	result, err := client.GetFeilongVersion()
@@ -57,5 +66,5 @@ func providerConfigure(d *schema.ResourceData) (any, error) {
 		return nil, fmt.Errorf("Expected Feilong API version 1.0, got: %s", result.Output.APIVersion)
 	}
 
-	return &apiClient{*client}, nil
+	return &apiClient{*client, localUser}, nil
 }
