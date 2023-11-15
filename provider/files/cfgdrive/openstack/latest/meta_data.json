@@ -1,0 +1,15 @@
+{
+  "uuid": "NAME",
+  "public_keys": {
+    "Public Key": "PUBLIC_KEY"
+  },
+  "keys": [
+    {
+      "name": "Public Key",
+      "type": "ssh",
+      "data": "PUBLIC_KEY"
+    }
+  ],
+  "hostname": "HOSTNAME",
+  "name": "NAME"
+}

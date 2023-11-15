@@ -34,25 +34,28 @@ func NewFeilongGuest() resource.Resource {
 
 // FeilongGuest defines the resource implementation.
 type FeilongGuest struct {
-	client *feilong.Client
+	Client *feilong.Client
+	LocalUser string
 }
 
 // FeilongGuestModel describes the resource data model.
 type FeilongGuestModel struct {
-	Name	types.String	`tfsdk:"name"`
-	UserId	types.String	`tfsdk:"userid"`
-	VCPUs	types.Int64	`tfsdk:"vcpus"`
-	Memory	types.String	`tfsdk:"memory"`
-	Disk	types.String	`tfsdk:"disk"`
-	Image	types.String	`tfsdk:"image"`
-	Mac	types.String	`tfsdk:"mac"`
+	Name		types.String	`tfsdk:"name"`
+	UserId		types.String	`tfsdk:"userid"`
+	VCPUs		types.Int64	`tfsdk:"vcpus"`
+	Memory		types.String	`tfsdk:"memory"`
+	Disk		types.String	`tfsdk:"disk"`
+	Image		types.String	`tfsdk:"image"`
+	Mac		types.String	`tfsdk:"mac"`
+	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
+	NetworkParams	types.String	`tfsdk:"network_params"`
 }
 
-func (r *FeilongGuest) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (guest *FeilongGuest) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_guest"
 }
 
-func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema {
 		MarkdownDescription: "Feilong guest VM resource",
 
@@ -73,7 +76,7 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Default:		int64default.StaticInt64(1),
 			},
 			"memory": schema.StringAttribute {
-				MarkdownDescription:	"Memory with unit (G, M, k)",
+				MarkdownDescription:	"Memory size with unit (G, M, k)",
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString("512M"),
@@ -95,6 +98,14 @@ func (r *FeilongGuest) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Computed:		true,
 				Default:		stringdefault.StaticString(""),
 			},
+			"cloudinit_params": schema.StringAttribute {
+				MarkdownDescription:	"Path to cloud-init parameters file",
+				Optional:		true,
+			},
+			"network_params": schema.StringAttribute {
+				MarkdownDescription:	"Path to network parameters file",
+				Optional:		true,
+			},
 		},
 	}
 }
@@ -105,9 +116,8 @@ func (guest *FeilongGuest) Configure(ctx context.Context, req resource.Configure
 		return
 	}
 
-	client := req.ProviderData.(*feilong.Client)
-
-	guest.client = client
+	guest.Client = &req.ProviderData.(*apiClient).Client
+	guest.LocalUser = req.ProviderData.(*apiClient).LocalUser
 }
 
 func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -140,9 +150,28 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 	image := data.Image.ValueString()
 	mac := data.Mac.ValueString()
+	networkParams := data.NetworkParams.ValueString()
+	cloudinitParams := data.CloudinitParams.ValueString()
+	localUser := guest.LocalUser
+	transportFiles := ""
+	remoteHost := ""
+	if networkParams != "" {
+                if cloudinitParams != "" {
+                        transportFiles = networkParams + "," + cloudinitParams
+                        remoteHost = localUser
+                } else {
+                        transportFiles = networkParams
+                        remoteHost = localUser
+                }
+        } else {
+                if cloudinitParams != "" {
+                        transportFiles = cloudinitParams
+                        remoteHost = localUser
+                }
+	}
 
 	// Create the guest
-	client := guest.client
+	client := guest.Client
 	diskList := []feilong.CreateGuestDisk {
 		{
 			Size:		size,
@@ -173,8 +202,8 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Couple the first network interface to the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
-		Couple:         true,
-		VSwitch:        "DEVNET",
+		Couple:		true,
+		VSwitch:	"DEVNET",
 	}
 	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
 	if err != nil {
@@ -185,7 +214,8 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
-		TransportFiles:	"/tmp/s15sp3/network.doscript,/tmp/s15sp3/cfgdrive.iso",
+		TransportFiles:	transportFiles,
+		RemoteHost:	remoteHost,
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {
@@ -219,8 +249,8 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 	// provider client data and make a call using it.
 	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
+	//	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+	//	return
 	// }
 
 	// Save updated data into Terraform state
@@ -240,8 +270,8 @@ func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateReques
 	// provider client data and make a call using it.
 	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
+	//	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
+	//	return
 	// }
 
 	// Save updated data into Terraform state
@@ -257,7 +287,7 @@ func (guest *FeilongGuest) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	client := guest.client
+	client := guest.Client
 	userid := data.UserId.ValueString()
 
 	err := client.DeleteGuest(userid)
@@ -270,6 +300,8 @@ func (guest *FeilongGuest) Delete(ctx context.Context, req resource.DeleteReques
 func (guest *FeilongGuest) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
+
+// For internal use
 
 func convertToMegabytes(sizeWithUnit string) (int, error) {
 	lastButOne := len(sizeWithUnit) - 1

@@ -32,9 +32,15 @@ type FeilongProvider struct {
 	version string
 }
 
+type apiClient struct {
+        Client          feilong.Client
+        LocalUser       string
+}
+
 // FeilongProviderModel describes the provider data model.
 type FeilongProviderModel struct {
 	Connector types.String `tfsdk:"connector"`
+	LocalUser types.String `tfsdk:"local_user"`
 }
 
 func (p *FeilongProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -44,9 +50,13 @@ func (p *FeilongProvider) Metadata(ctx context.Context, req provider.MetadataReq
 
 func (p *FeilongProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"connector": schema.StringAttribute{
-				MarkdownDescription:	"Domain name or address of the z/VM cloud connector",
+		Attributes: map[string]schema.Attribute {
+			"connector": schema.StringAttribute {
+				MarkdownDescription:	"Domain name or address of the z/VM connector",
+				Optional:		true,
+			},
+			"local_user": schema.StringAttribute {
+				MarkdownDescription:	"Where parameter files are uploaded from",
 				Optional:		true,
 			},
 		},
@@ -87,6 +97,8 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
+	localUser := config.LocalUser.ValueString()
+
 	// Create a new Feilong client using the configuration values
 	client := feilong.NewClient(&connector, nil)
 
@@ -102,8 +114,12 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 	}
 
 	// Make the Feilong client available during DataSource and Resource type Configure methods.
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	c := apiClient {
+		Client: *client,
+		LocalUser: localUser,
+	}
+	resp.DataSourceData = &c
+	resp.ResourceData = &c
 }
 
 func (p *FeilongProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -115,7 +131,8 @@ func (p *FeilongProvider) DataSources(ctx context.Context) []func() datasource.D
 
 func (p *FeilongProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-//		NewFeilongCloudinitDisk,
+		NewFeilongCloudinitParams,
+		NewFeilongNetworkParams,
 		NewFeilongGuest,
 	}
 }
