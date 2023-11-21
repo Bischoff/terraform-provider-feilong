@@ -3,7 +3,7 @@
 This terraform provider enables to deploy s390 virtual machines on z/VM via Feilong.
 
 **NOTE:** this is the branch for terraform 0.13.4 (protocol version 5).
-The code for terraform 1.5.5 (protocol version 6) is in `main` branch.
+The code for terraform 1.0.10 (protocol version 6) is in `main` branch.
 
 
 ## Requirements
@@ -46,7 +46,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.0.1"
+      version = "0.0.2"
     }
   }
 }
