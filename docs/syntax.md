@@ -4,11 +4,11 @@ Here is a complete configuration example:
 
 ```terraform
 terraform {
-  required_version = ">= 1.5.5"
+  required_version = ">= 1.0.10"
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.0.1"
+      version = "0.0.2"
     }
   }
 }
