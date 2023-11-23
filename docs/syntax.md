@@ -42,6 +42,14 @@ resource "feilong_guest" "opensuse" {
   cloudinit_params = feilong_cloudinit_params.cloudinit.file
   network_params   = feilong_network_params.network.file
 }
+
+output "feilong_guest_mac_address" {
+  value = feilong_guest.opensuse.mac_address
+}
+
+output "feilong_guest_ip_address" {
+  value = feilong_guest.opensuse.ip_address
+}
 ```
 
 Feilong provider section (mandatory):

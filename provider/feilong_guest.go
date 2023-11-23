@@ -12,6 +12,11 @@ import (
 	"strconv"
 	"errors"
 	"fmt"
+	"time"
+
+	// There is no replacement for the old resource.StateChangeConf
+	// (see https://discuss.hashicorp.com/t/terraform-plugin-framework-what-is-the-replacement-for-waitforstate-or-retrycontext/45538)
+        oldresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,6 +54,8 @@ type FeilongGuestModel struct {
 	Mac		types.String	`tfsdk:"mac"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
 	NetworkParams	types.String	`tfsdk:"network_params"`
+	MACAddress	types.String	`tfsdk:"mac_address"`
+	IPAddress	types.String	`tfsdk:"ip_address"`
 }
 
 func (guest *FeilongGuest) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -76,13 +83,13 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 				Default:		int64default.StaticInt64(1),
 			},
 			"memory": schema.StringAttribute {
-				MarkdownDescription:	"Memory size with unit (G, M, k)",
+				MarkdownDescription:	"Memory size with unit (G, M, K, B)",
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString("512M"),
 			},
 			"disk": schema.StringAttribute {
-				MarkdownDescription:	"Disk size of first disk with unit (G, M, k)",
+				MarkdownDescription:	"Disk size of first disk with unit (T, G, M, K, B)",
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString("10G"),
@@ -93,7 +100,7 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 				Required:		true,
 			},
 			"mac": schema.StringAttribute {
-				MarkdownDescription:	"MAC address of first interface",
+				MarkdownDescription:	"Desired MAC address of first interface",
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString(""),
@@ -105,6 +112,14 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 			"network_params": schema.StringAttribute {
 				MarkdownDescription:	"Path to network parameters file",
 				Optional:		true,
+			},
+			"mac_address": schema.StringAttribute {
+				MarkdownDescription:	"MAC address of first interface after deployment",
+				Computed:		true,
+			},
+			"ip_address": schema.StringAttribute {
+				MarkdownDescription:	"IP address of first interface after deployment",
+				Computed:		true,
 			},
 		},
 	}
@@ -156,18 +171,18 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	transportFiles := ""
 	remoteHost := ""
 	if networkParams != "" {
-                if cloudinitParams != "" {
-                        transportFiles = networkParams + "," + cloudinitParams
-                        remoteHost = localUser
-                } else {
-                        transportFiles = networkParams
-                        remoteHost = localUser
-                }
-        } else {
-                if cloudinitParams != "" {
-                        transportFiles = cloudinitParams
-                        remoteHost = localUser
-                }
+		if cloudinitParams != "" {
+			transportFiles = networkParams + "," + cloudinitParams
+			remoteHost = localUser
+		} else {
+			transportFiles = networkParams
+			remoteHost = localUser
+		}
+	} else {
+		if cloudinitParams != "" {
+			transportFiles = cloudinitParams
+			remoteHost = localUser
+		}
 	}
 
 	// Create the guest
@@ -227,7 +242,19 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	err = client.StartGuest(userid)
 	if err != nil {
 		resp.Diagnostics.AddError("Startup Error", fmt.Sprintf("Got error: %s", err))
+		return
 	}
+
+	// Wait until the guest gets an IP address
+	var macAddress string
+	var ipAddress string
+	err = waitForLease(ctx, client, userid, &macAddress, &ipAddress)
+	if err != nil {
+		resp.Diagnostics.AddError("Error Waiting for an IP Address", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	data.MACAddress = types.StringValue(macAddress)
+	data.IPAddress = types.StringValue(ipAddress)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
@@ -328,4 +355,45 @@ func convertToMegabytes(sizeWithUnit string) (int, error) {
 			return 0, errors.New("Unit must be one of B K M G T")
 	}
 	return size, nil
+}
+
+const waitingMsg string = "Still waiting for IP address"
+const obtainedMsg string = "IP address obtained"
+
+func waitForLease(ctx context.Context, client *feilong.Client, userid string, macAddress *string, ipAddress *string) error {
+	waitFunction := func() (interface{}, string, error) {
+		err := getAddresses(client, userid, macAddress, ipAddress)
+		if err != nil {
+			return false, "", err
+		}
+		if *ipAddress == "" {
+			return false, waitingMsg, nil
+		}
+		return true, obtainedMsg, nil
+	}
+
+	stateConf := &oldresource.StateChangeConf {
+		Pending:    []string { waitingMsg },
+		Target:     []string { obtainedMsg },
+		Refresh:    waitFunction,
+		Timeout:    1 * time.Minute,
+		MinTimeout: 3 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
+func getAddresses(client *feilong.Client, userid string, macAddress *string, ipAddress *string) error {
+	result, err := client.GetGuestAdaptersInfo(userid)
+	if err != nil {
+		return err
+	}
+
+	if len(result.Output.Adapters) == 0 {
+		return errors.New("Adapters Query Error")
+	}
+	*macAddress = result.Output.Adapters[0].MACAddress
+	*ipAddress = result.Output.Adapters[0].IPAddress
+	return nil
 }
