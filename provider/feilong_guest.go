@@ -11,8 +11,10 @@ import (
 	"strings"
 	"strconv"
 	"errors"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -47,13 +49,13 @@ func feilongGuest() *schema.Resource {
 				Default:	1,
 			},
 			"memory": {
-				Description:	"Memory size with unit (G, M, k)",
+				Description:	"Memory size with unit (G, M, K, B)",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Default:	"512M",
 			},
 			"disk": {
-				Description:	"Disk size of first disk with unit (G, M, k)",
+				Description:	"Disk size of first disk with unit (T, G, M, K, B)",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Default:	"10G",
@@ -65,7 +67,7 @@ func feilongGuest() *schema.Resource {
 				Required:	true,
 			},
 			"mac": {
-				Description:	"MAC address of first interface",
+				Description:	"Desired MAC address of first interface",
 				Type:		schema.TypeString,
 				Optional:	true,
 				Default:	"",
@@ -79,6 +81,16 @@ func feilongGuest() *schema.Resource {
 				Description:	"Path to network parameters file",
 				Type:		schema.TypeString,
 				Optional:	true,
+			},
+			"mac_address": {
+				Description:	"MAC address of first interface after deployment",
+				Type:		schema.TypeString,
+				Computed:	true,
+			},
+			"ip_address": {
+				Description:	"IP address of first interface after deployment",
+				Type:		schema.TypeString,
+				Computed:	true,
 			},
 		},
 	}
@@ -180,6 +192,22 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.Errorf("Startup Error: %s", err)
 	}
 
+	// Wait until the guest gets an IP address
+	var macAddress string
+	var ipAddress string
+	err = waitForLease(ctx, client, userid, &macAddress, &ipAddress)
+	if err != nil {
+		return diag.Errorf("Error Waiting for an IP Address: %s", err)
+	}
+	err = d.Set("mac_address", macAddress)
+	if err != nil {
+		return diag.Errorf("MAC Address Registration Error: %s", err)
+	}
+	err = d.Set("ip_address", ipAddress)
+	if err != nil {
+		return diag.Errorf("IP Address Registration Error: %s", err)
+	}
+
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a Feilong guest resource")
 
@@ -243,4 +271,45 @@ func convertToMegabytes(sizeWithUnit string) (int, error) {
 			return 0, errors.New("Unit must be one of B K M G T")
 	}
 	return size, nil
+}
+
+const waitingMsg string = "Still waiting for IP address"
+const obtainedMsg string = "IP address obtained"
+
+func waitForLease(ctx context.Context, client feilong.Client, userid string, macAddress *string, ipAddress *string) error {
+	waitFunction := func() (interface{}, string, error) {
+		err := getAddresses(client, userid, macAddress, ipAddress)
+		if err != nil {
+			return false, "", err
+		}
+		if *ipAddress == "" {
+			return false, waitingMsg, nil
+		}
+		return true, obtainedMsg, nil
+	}
+
+	stateConf := &resource.StateChangeConf {
+		Pending:    []string { waitingMsg },
+		Target:     []string { obtainedMsg },
+		Refresh:    waitFunction,
+		Timeout:    1 * time.Minute,
+		MinTimeout: 3 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
+func getAddresses(client feilong.Client, userid string, macAddress *string, ipAddress *string) error {
+	result, err := client.GetGuestAdaptersInfo(userid)
+	if err != nil {
+		return err
+	}
+
+	if len(result.Output.Adapters) == 0 {
+		return errors.New("Adapters Query Error")
+	}
+	*macAddress = result.Output.Adapters[0].MACAddress
+	*ipAddress = result.Output.Adapters[0].IPAddress
+	return nil
 }
