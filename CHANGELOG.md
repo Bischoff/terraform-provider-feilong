@@ -1,5 +1,7 @@
 ## 0.0.3 - Unreleased
 
+ * support for custom switches
+
 
 ## 0.0.2 - 2023-12-02
 

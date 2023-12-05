@@ -8,7 +8,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.0.2"
+      version = "0.0.3"
     }
   }
 }
@@ -27,6 +27,21 @@ resource "feilong_cloudinit_params" "cloudinit" {
 resource "feilong_network_params" "network" {
   name       = "opensuse_network"
   os_distro  = "sles15"
+}
+
+resource "feilong_vswitch" "myswitch" {
+  name             = "MYSWITCH"
+  real_device      = "0906"
+  controller       = "*"
+  connection_type  = "CONNECT"
+  network_type     = "ETHERNET"
+  router           = "NONROUTER"
+  vlan_id          = 2100
+  port_type        = "ACCESS"
+  gvrp             = "NOGVRP"
+  queue_mem        = 8
+  native_vlan_id   = 1
+  persist          = false
 }
 
 resource "feilong_guest" "opensuse" {
@@ -70,6 +85,22 @@ Network parameters sections (optional):
 
  * `name` (mandatory): any arbitrary name to identify this resource. Please try to make it unique.
  * `os_distro` (mandatory): the OS and the distribution used to select network parameters like udev definitions, interface network definitions, network service to start, etc. The only value currently defined is "sles15".
+
+
+VSwitch sections (optional):
+
+ * `name` (mandatory): the name for z/OS of the virtual switch.
+ * `real_device` (optional): the real device to connect to.
+ * `controller` (optional): the controller to use, or `*` for any.
+ * `connection_type` (optional): `CONNECT`, `DISCONNECT`, or `NOUPLINK`.
+ * `network_type` (optional): `IP` or `ETHERNET`.
+ * `router` (optional): `NONROUTER` or `PRIROUTER`.
+ * `vlan_id` (optional): VLAN identifier (1 to 4094).
+ * `port_type` (optional): `ACCESS` or `TRUNK`.
+ * `gvrp` (optional): `GVRP` or `NOGVRP`.
+ * `queue_mem` (optional): 1 to 8 (megabytes).
+ * `native_vlan_id` (optional): native VLAN identifier (1 to 4094).
+ * `persist` (optional): whether the switch is permanent.
 
 
 Guest sections (optional):

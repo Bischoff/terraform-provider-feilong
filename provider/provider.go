@@ -134,6 +134,7 @@ func (p *FeilongProvider) Resources(ctx context.Context) []func() resource.Resou
 		NewFeilongCloudinitParams,
 		NewFeilongNetworkParams,
 		NewFeilongGuest,
+		NewFeilongVSwitch,
 	}
 }
 
