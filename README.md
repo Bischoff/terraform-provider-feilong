@@ -88,29 +88,6 @@ resource "feilong_guest" "opensuse" {
 For more parameters, refer to the [syntax reference](docs/syntax.md).
 
 
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
-
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-In order to run the full suite of acceptance tests, you need a real Feilong deployment where you previously:
- * upload an image named `testacc`
- * provide a virtual switch named `MYSWITCH`
- * provide DHCP for MAC address ending in `78:9a:bc`.
-
-Once that is done, run `make testacc`:
-
-```bash
-$ # specify the address of the Feilong connector
-$ export ZVM_CONNECTOR="1.2.3.4"
-$ # run the tests
-$ make testacc
-```
-
-Note: currently hitting this bug: https://github.com/hashicorp/terraform-plugin-testing/issues/185
-
-
 ## License
 
 Apache 2.0, See LICENSE file
