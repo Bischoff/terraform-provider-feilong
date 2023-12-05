@@ -39,6 +39,7 @@ resource "feilong_guest" "opensuse" {
   userid     = "LINUX097"
   vcpus      = 2
   mac        = "12:34:56:78:9a:bc"
+  vswitch    = "MYSWITCH"
   cloudinit_params = feilong_cloudinit_params.cloudinit.file
   network_params   = feilong_network_params.network.file
 }
@@ -74,12 +75,13 @@ Network parameters sections (optional):
 Guest sections (optional):
 
  * `name` (mandatory): any arbitrary name to identify this resource. Please try to make it unique.
- * `memory` (mandatory): desired memory size, as an integer number followed by B, K, M, G
- * `disk` (mandatory): desired disk size, as an integer number followed by B, K, M, G
+ * `memory` (mandatory): desired memory size, as an integer number followed by B, K, M, or G.
+ * `disk` (mandatory): desired disk size, as an integer number followed by B, K, M, or G.
  * `image` (mandatory): the imaged used to create the guest. This image has to be prepared as explained in Feilong documentation.
  * `userid` (optional): the desired name of the guest on the z/VM side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `vcpus` (optional): the desired number of virtual CPUs on the guest. If omitted, it will be set to `1`.
  * `mac` (optional): the desired MAC address of the guest, as 6 hexadecimal digits separed by colons. Only last 3 bytes will be used, the first 3 will be ignored by Feilong. Feilong will set these first 3 bytes arbitrarily.
+ * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `DEVNET`.
  * `cloudinit_params` (optional): the path to a local file containing an ISO 9660 image containing cloud-init parameters in the format used by openstack. You can:
     * prepare this file yourself, taking your inspiration from the contents of the `profider/files/cfgdrive/` directory in this project, or
     * use a cloud-init parameters section to prepare it automatically. If you do so, use `feilong_cloudinit_params.<CLOUDINIT_RESOURCE_NAME>.file` instead of a hardcoded path.

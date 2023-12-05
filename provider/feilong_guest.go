@@ -72,6 +72,12 @@ func feilongGuest() *schema.Resource {
 				Optional:	true,
 				Default:	"",
 			},
+			"vswitch": {
+				Description:	"Name of virtual switch to connect to",
+				Type:		schema.TypeString,
+				Optional:	true,
+				Default:	"DEVNET",
+			},
 			"cloudinit_params": {
 				Description:	"Path to cloud-init parameters file",
 				Type:		schema.TypeString,
@@ -117,6 +123,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	image := d.Get("image").(string)
 	mac := d.Get("mac").(string)
+	vswitch := d.Get("vswitch").(string)
 	networkParams := d.Get("network_params").(string)
 	cloudinitParams := d.Get("cloudinit_params").(string)
 	localUser := meta.(*apiClient).LocalUser
@@ -168,7 +175,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	// Couple the first network interface to the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
 		Couple:		true,
-		VSwitch:	"DEVNET",
+		VSwitch:	vswitch,
 	}
 	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
 	if err != nil {
