@@ -52,6 +52,7 @@ type FeilongGuestModel struct {
 	Disk		types.String	`tfsdk:"disk"`
 	Image		types.String	`tfsdk:"image"`
 	Mac		types.String	`tfsdk:"mac"`
+	VSwitch		types.String	`tfsdk:"vswitch"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
 	NetworkParams	types.String	`tfsdk:"network_params"`
 	MACAddress	types.String	`tfsdk:"mac_address"`
@@ -104,6 +105,12 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 				Optional:		true,
 				Computed:		true,
 				Default:		stringdefault.StaticString(""),
+			},
+			"vswitch": schema.StringAttribute {
+				MarkdownDescription:	"Name of virtual switch to connect to",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString("DEVNET"),
 			},
 			"cloudinit_params": schema.StringAttribute {
 				MarkdownDescription:	"Path to cloud-init parameters file",
@@ -165,6 +172,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 	image := data.Image.ValueString()
 	mac := data.Mac.ValueString()
+	vswitch := data.VSwitch.ValueString()
 	networkParams := data.NetworkParams.ValueString()
 	cloudinitParams := data.CloudinitParams.ValueString()
 	localUser := guest.LocalUser
@@ -218,7 +226,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	// Couple the first network interface to the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
 		Couple:		true,
-		VSwitch:	"DEVNET",
+		VSwitch:	vswitch,
 	}
 	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
 	if err != nil {

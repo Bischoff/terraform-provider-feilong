@@ -94,7 +94,12 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
-In order to run the full suite of acceptance tests, you need a real Feilong deployment. You also need to upload an image named `testacc`. Once that is done, run `make testacc`:
+In order to run the full suite of acceptance tests, you need a real Feilong deployment where you previously:
+ * upload an image named `testacc`
+ * provide a virtual switch named `MYSWITCH`
+ * provide DHCP for MAC address ending in `78:9a:bc`.
+
+Once that is done, run `make testacc`:
 
 ```bash
 $ # specify the address of the Feilong connector
