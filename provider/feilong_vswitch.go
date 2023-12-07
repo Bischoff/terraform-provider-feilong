@@ -9,6 +9,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -35,6 +36,7 @@ type FeilongVSwitch struct {
 // FeilongVSwitchModel describes the resource data model.
 type FeilongVSwitchModel struct {
 	Name		types.String	`tfsdk:"name"`
+	VSwitch		types.String	`tfsdk:"vswitch"`
 	RealDevice	types.String	`tfsdk:"real_device"`
 	Controller	types.String	`tfsdk:"controller"`
 	ConnectionType	types.String	`tfsdk:"connection_type"`
@@ -58,8 +60,13 @@ func (guest *FeilongVSwitch) Schema(ctx context.Context, req resource.SchemaRequ
 
 		Attributes: map[string]schema.Attribute {
 			"name": schema.StringAttribute {
-				MarkdownDescription:	"Virtual switch name for z/VM",
+				MarkdownDescription:	"Arbitrary name for the resource",
 				Required:		true,
+			},
+			"vswitch": schema.StringAttribute {
+				MarkdownDescription:	"Virtual switch name for z/VM",
+				Optional:		true,
+				Computed:		true,
 			},
 			"real_device": schema.StringAttribute {
 				MarkdownDescription:	"Real device number",
@@ -125,6 +132,17 @@ func (guest *FeilongVSwitch) Create(ctx context.Context, req resource.CreateRequ
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Compute computed fields
+	resourceName := data.Name.ValueString()
+	vswitch := data.VSwitch.ValueString()
+	if vswitch == "" {
+		vswitch = strings.ToUpper(resourceName)
+		if (len(vswitch) > 8) {
+			vswitch = vswitch[:8]
+		}
+		data.VSwitch = types.StringValue(vswitch)
 	}
 
 	// Create the virtual switch
