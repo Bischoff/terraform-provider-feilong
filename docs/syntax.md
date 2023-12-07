@@ -29,8 +29,11 @@ resource "feilong_network_params" "network" {
   os_distro  = "sles15"
 }
 
-resource "feilong_vswitch" "myswitch" {
-  name             = "MYSWITCH"
+resource "feilong_vswitch" "switch" {
+  name             = "my vswitch"
+
+  // optional parameters:
+  vswitch          = "MYSWITCH"
   real_device      = "0906"
   controller       = "*"
   connection_type  = "CONNECT"
@@ -54,9 +57,9 @@ resource "feilong_guest" "opensuse" {
   userid     = "LINUX097"
   vcpus      = 2
   mac        = "12:34:56:78:9a:bc"
-  vswitch    = "MYSWITCH"
   cloudinit_params = feilong_cloudinit_params.cloudinit.file
   network_params   = feilong_network_params.network.file
+  vswitch          = feilong_vswitch.switch.vswitch
 }
 
 output "feilong_guest_mac_address" {
@@ -89,7 +92,8 @@ Network parameters sections (optional):
 
 VSwitch sections (optional):
 
- * `name` (mandatory): the name for z/OS of the virtual switch.
+ * `name` (mandatory): any arbitrary name to identify this resource. Please try to make it unique.
+ * `vswitch` (optional): the desired name of the virtual switch on the z/OS side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `real_device` (optional): the real device to connect to.
  * `controller` (optional): the controller to use, or `*` for any.
  * `connection_type` (optional): `CONNECT`, `DISCONNECT`, or `NOUPLINK`.
@@ -112,7 +116,6 @@ Guest sections (optional):
  * `userid` (optional): the desired name of the guest on the z/VM side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `vcpus` (optional): the desired number of virtual CPUs on the guest. If omitted, it will be set to `1`.
  * `mac` (optional): the desired MAC address of the guest, as 6 hexadecimal digits separed by colons. Only last 3 bytes will be used, the first 3 will be ignored by Feilong. Feilong will set these first 3 bytes arbitrarily.
- * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `DEVNET`.
  * `cloudinit_params` (optional): the path to a local file containing an ISO 9660 image containing cloud-init parameters in the format used by openstack. You can:
     * prepare this file yourself, taking your inspiration from the contents of the `profider/files/cfgdrive/` directory in this project, or
     * use a cloud-init parameters section to prepare it automatically. If you do so, use `feilong_cloudinit_params.<CLOUDINIT_RESOURCE_NAME>.file` instead of a hardcoded path.
@@ -121,3 +124,6 @@ Guest sections (optional):
     * prepare this file yourself, taking your inspiration from the contents of the `provider/files/network.config/` directory in this project, or
     * use a network parameters section to prepare it automatically. If you do so, use `feilong_network_params.<NETWORK_RESOURCE_NAME>.file` instead of a hardcoded path.
    In both cases, you must declare the user and hostname of your local machine in `local_user` field of the provider, and accept Feilong's public SSH key.
+ * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `DEVNET`. You can:
+    * use any already existing vswitch, or
+    * use a vswitch section to define your own vswitch. If you do so, use `feilong_vswitch.<VSWITCH_RESOURCE_NAME>.vswitch`instead of a hardcoded name.

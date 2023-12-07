@@ -8,6 +8,7 @@ package provider
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -27,9 +28,15 @@ func feilongVSwitch() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Description:	"Virtual switch name for z/VM",
+				Description:	"Arbitrary name for the resource",
 				Type:		schema.TypeString,
 				Required:	true,
+			},
+			"vswitch": {
+				Description:	"Virtual switch name for z/VM",
+				Type:		schema.TypeString,
+				Optional:	true,
+				Computed:	true,
 			},
 			"real_device": {
 				Description:	"Real device number",
@@ -91,9 +98,20 @@ func feilongVSwitch() *schema.Resource {
 }
 
 func feilongVSwitchCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	// Compute computed fields
+	resourceName := d.Get("name").(string)
+	vswitch := d.Get("vswitch").(string)
+	if vswitch == "" {
+		vswitch = strings.ToUpper(resourceName)
+		if (len(vswitch) > 8) {
+			vswitch = vswitch[:8]
+		}
+		d.Set("vswitch", vswitch)
+	}
+
 	// Create the virtual switch
 	client := meta.(*apiClient).Client
-	createParams := feilong.CreateVSwitchParams { Name: d.Get("name").(string) }
+	createParams := feilong.CreateVSwitchParams { Name: vswitch }
 	if d.Get("real_device") != nil {
 		createParams.RealDev = d.Get("real_device").(string)
 	}
@@ -137,7 +155,7 @@ func feilongVSwitchCreate(ctx context.Context, d *schema.ResourceData, meta any)
 	tflog.Trace(ctx, "created a Feilong vswitch resource")
 
 	// Set resource identifier
-	d.SetId(d.Get("name").(string))
+	d.SetId(resourceName)
 
 	return nil
 }
