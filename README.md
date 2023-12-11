@@ -24,16 +24,13 @@ go install
 
 The provider will be installed into `$GOPATH/bin`.
 
-
-## Using the Provider
-
-At this point, the Feilong provider is not yet in HashiCorp's registry. To access it, you must do one of these:
+The Feilong provider is in HashiCorp's registry. To bypass the registry, you can do one of these:
 
 Create a system-wide symbolic link:
 
 ```bash
-# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.1/linux_amd64/
-# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.1/linux_amd64/
+# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.4/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.4/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
 ```
 
@@ -52,6 +49,9 @@ provider_installation {
 
 Replace `<GOPATH>` with the value of your `$GOPATH` environment variable.
 
+
+## Using the Provider
+
 In your `main.tf` file, use:
 
 ```terraform
@@ -60,7 +60,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.0.3"
+      version = "0.0.4"
     }
   }
 }
@@ -85,7 +85,16 @@ resource "feilong_guest" "opensuse" {
 }
 ```
 
-For more parameters, refer to the [documentation](docs/README.md).
+Then use Terraform commands:
+
+```bash
+$ terraform init
+$ terraform apply
+(use the VMs)
+$ terraform destroy
+```
+
+For more details, refer to the [documentation](docs/README.md).
 
 
 ## License

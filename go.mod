@@ -3,7 +3,7 @@ module github.com/Bischoff/terraform-provider-feilong
 go 1.21
 
 require (
-	github.com/Bischoff/feilong-client-go v0.0.3
+	github.com/Bischoff/feilong-client-go v0.0.4
 	github.com/hashicorp/terraform-plugin-framework v1.4.2
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
