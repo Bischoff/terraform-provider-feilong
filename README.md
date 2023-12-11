@@ -71,7 +71,7 @@ resource "feilong_guest" "opensuse" {
 }
 ```
 
-For more parameters, refer to the [syntax reference](docs/syntax.md).
+For more parameters, refer to the [documentation](docs/README.md).
 
 
 ## License
