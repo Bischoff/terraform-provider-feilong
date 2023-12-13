@@ -53,7 +53,7 @@ func (p *FeilongProvider) Schema(ctx context.Context, req provider.SchemaRequest
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute {
 			"connector": schema.StringAttribute {
-				MarkdownDescription:	"Domain name or address of the z/VM connector",
+				MarkdownDescription:	"URL of the z/VM connector",
 				Optional:		true,
 			},
 			"admin_token": schema.StringAttribute {
