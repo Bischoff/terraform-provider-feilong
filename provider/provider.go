@@ -39,8 +39,9 @@ type apiClient struct {
 
 // FeilongProviderModel describes the provider data model.
 type FeilongProviderModel struct {
-	Connector types.String `tfsdk:"connector"`
-	LocalUser types.String `tfsdk:"local_user"`
+	Connector	types.String	`tfsdk:"connector"`
+	AdminToken	types.String	`tfsdk:"admin_token"`
+	LocalUser	types.String	`tfsdk:"local_user"`
 }
 
 func (p *FeilongProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -53,6 +54,10 @@ func (p *FeilongProvider) Schema(ctx context.Context, req provider.SchemaRequest
 		Attributes: map[string]schema.Attribute {
 			"connector": schema.StringAttribute {
 				MarkdownDescription:	"Domain name or address of the z/VM connector",
+				Optional:		true,
+			},
+			"admin_token": schema.StringAttribute {
+				MarkdownDescription:	"Shared secret to authenticate the client",
 				Optional:		true,
 			},
 			"local_user": schema.StringAttribute {
@@ -72,16 +77,6 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	if config.Connector.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("connector"),
-			"Unknown z/VM cloud connector",
-			"The provider cannot create the Feilong client as there is an unknown configuration value for the z/VM cloud connector. " +
-			"Please provide the value in the configuration, or use the ZVM_CONNECTOR environment variable.",
-		)
-		return
-	}
-
 	connector := os.Getenv("ZVM_CONNECTOR")
 	if !config.Connector.IsNull() {
 		connector = config.Connector.ValueString()
@@ -97,12 +92,21 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	localUser := config.LocalUser.ValueString()
-
 	// Create a new Feilong client using the configuration values
 	client := feilong.NewClient(&connector, nil)
 
-	// Check that the z/VM connector answers and that the API is of expected version
+	adminToken := config.AdminToken.ValueString()
+
+	// If needed, create an authentication token
+	if adminToken != "" {
+		err := client.CreateToken(adminToken)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create authentication token, got error: %s", err))
+			return
+		}
+	}
+
+	// Check that the API is of expected version
 	result, err := client.GetFeilongVersion()
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to contact z/VM connector, got error: %s", err))
@@ -112,6 +116,8 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Expected Feilong API version 1.0, got: %s", result.Output.APIVersion))
 		return
 	}
+
+	localUser := config.LocalUser.ValueString()
 
 	// Make the Feilong client available during DataSource and Resource type Configure methods.
 	c := apiClient {
