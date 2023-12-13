@@ -24,6 +24,11 @@ func New(version string) func() *schema.Provider {
 					DefaultFunc:	schema.EnvDefaultFunc("ZVM_CONNECTOR", nil),
 					Description:	"Domain name or address of the z/VM connector",
 				},
+				"admin_token": {
+					Type:		schema.TypeString,
+					Optional:	true,
+					Description:	"Shared secret to authenticate the client",
+				},
 				"local_user": {
 					Type:		schema.TypeString,
 					Optional:	true,
@@ -56,9 +61,18 @@ type apiClient struct {
 func providerConfigure(d *schema.ResourceData) (any, error) {
 	connector := d.Get("connector").(string)
 	client := feilong.NewClient(&connector, nil)
+	adminToken := d.Get("admin_token").(string)
 	localUser := d.Get("local_user").(string)
 
-	// Check that the z/VM connector answers and that the API is of expected version
+	// If needed, create an authentication token
+	if adminToken != "" {
+		err := client.CreateToken(adminToken)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to create authentication token, got error: %s", err)
+		}
+	}
+
+	// Check that the API is of expected version
 	result, err := client.GetFeilongVersion()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to contact z/VM connector, got error: %s", err)

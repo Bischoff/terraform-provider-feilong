@@ -1,5 +1,8 @@
 ## 0.0.4 - Unreleased
 
+FEATURES:
+ * support for authentication token
+
 
 ## 0.0.3 - 2023-12-11
 
