@@ -22,7 +22,7 @@ func New(version string) func() *schema.Provider {
 					Type:		schema.TypeString,
 					Required:	true,
 					DefaultFunc:	schema.EnvDefaultFunc("ZVM_CONNECTOR", nil),
-					Description:	"Domain name or address of the z/VM connector",
+					Description:	"URL of the z/VM connector",
 				},
 				"admin_token": {
 					Type:		schema.TypeString,

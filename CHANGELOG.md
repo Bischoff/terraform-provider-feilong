@@ -2,6 +2,7 @@
 
 FEATURES:
  * support for authentication token
+ * support for HTTPS
 
 
 ## 0.0.3 - 2023-12-11

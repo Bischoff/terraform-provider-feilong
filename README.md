@@ -52,7 +52,7 @@ terraform {
 }
 
 provider "feilong" {
-  connector = "1.2.3.4"            // IP address or domain name of your z/VM cloud connector
+  connector = "http://1.2.3.4"     // URL of your z/VM cloud connector
                                    // (i.e. the VM where Feilong runs)
                                    // if omitted, will use variable $ZVM_CONNECTOR
 }
