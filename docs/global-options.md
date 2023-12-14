@@ -39,6 +39,6 @@ You can bypass the terraform registry by compiling the Terraform provider yourse
 
 The `provider` section is mandatory. The possible variables are:
 
- * `connector` (optional): the URL of the z/VM connector, i.e. the VM where Feilong runs. If you omit it, the value will be taken from environment variable `$ZVM_CONNECTOR`.
+ * `connector` (mandatory): the URL of the z/VM connector, i.e. the VM where Feilong runs. Allowed protocols are `http://` and `https://`.
  * `admin_token` (optional): the secret shared with the z/VM connector for authentication, in case this was set up. See the [Token Usage](https://cloudlib4zvm.readthedocs.io/en/latest/setuphttpd.html#token-usage) chapter of the Feilong documentation for more information on how to set this up. If you don't want to store it in the `main.tf` file, you can use [Terraform variables](https://developer.hashicorp.com/terraform/language/values/variables) to pass it at run time.
  * `local_user` (optional): user name and IP address or domain name of the workstation where you run terraform. You need to specify it if you intend to use cloud-init parameters and/or network parameters. In that case, you must drop the public SSH key of the z/VM connector into file `.shh/authorized_keys` in the home directory of that user. This will allow Feilong to upload the cloud-init parameters file and/or the network parameters file.
