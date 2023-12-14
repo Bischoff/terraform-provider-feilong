@@ -8,7 +8,6 @@ package provider
 
 import (
 	"context"
-	"os"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -16,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/Bischoff/feilong-client-go"
 )
@@ -54,7 +52,7 @@ func (p *FeilongProvider) Schema(ctx context.Context, req provider.SchemaRequest
 		Attributes: map[string]schema.Attribute {
 			"connector": schema.StringAttribute {
 				MarkdownDescription:	"URL of the z/VM connector",
-				Optional:		true,
+				Required:		true,
 			},
 			"admin_token": schema.StringAttribute {
 				MarkdownDescription:	"Shared secret to authenticate the client",
@@ -77,27 +75,12 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	connector := os.Getenv("ZVM_CONNECTOR")
-	if !config.Connector.IsNull() {
-		connector = config.Connector.ValueString()
-	}
-
-	if connector == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("connector"),
-			"Missing z/VM cloud connector",
-			"The provider cannot create the Feilong client as there is a missing or empty value for the z/VM cloud connector. " +
-			"Please make sure the value in the configuration, or of the ZVM_CONNECTOR environment variable, is not empty.",
-		)
-		return
-	}
-
 	// Create a new Feilong client using the configuration values
+	connector := config.Connector.ValueString()
 	client := feilong.NewClient(&connector, nil)
 
-	adminToken := config.AdminToken.ValueString()
-
 	// If needed, create an authentication token
+	adminToken := config.AdminToken.ValueString()
 	if adminToken != "" {
 		err := client.CreateToken(adminToken)
 		if err != nil {
@@ -117,9 +100,8 @@ func (p *FeilongProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	localUser := config.LocalUser.ValueString()
-
 	// Make the Feilong client available during DataSource and Resource type Configure methods.
+	localUser := config.LocalUser.ValueString()
 	c := apiClient {
 		Client: *client,
 		LocalUser: localUser,
