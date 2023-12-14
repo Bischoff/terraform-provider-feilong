@@ -21,7 +21,6 @@ func New(version string) func() *schema.Provider {
 				"connector": {
 					Type:		schema.TypeString,
 					Required:	true,
-					DefaultFunc:	schema.EnvDefaultFunc("ZVM_CONNECTOR", nil),
 					Description:	"URL of the z/VM connector",
 				},
 				"admin_token": {
