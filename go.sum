@@ -1,7 +1,7 @@
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
-github.com/Bischoff/feilong-client-go v0.0.4 h1:0n26acbee71MXpxLYOrGWqC8r7dn3yptcDFfuxTBodY=
-github.com/Bischoff/feilong-client-go v0.0.4/go.mod h1:znBKIj/2PtEEyqRBWdTAtTtJKPjt3a+3He+UY9OBEoo=
+github.com/Bischoff/feilong-client-go v0.0.5 h1:M4rvD20u2C++R96KO5M6vLkyFVSfKJJ2kkebmpYRLFk=
+github.com/Bischoff/feilong-client-go v0.0.5/go.mod h1:znBKIj/2PtEEyqRBWdTAtTtJKPjt3a+3He+UY9OBEoo=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95 h1:KLq8BE0KwCL+mmXnjLWEAOYO+2l2AE4YMmqG1ZpZHBs=
