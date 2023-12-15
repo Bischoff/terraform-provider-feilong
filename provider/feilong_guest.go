@@ -146,7 +146,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	// Create the guest
 	client := meta.(*apiClient).Client
-	diskList := []feilong.CreateGuestDisk {
+	diskList := []feilong.GuestDisk {
 		{
 			Size:		size,
 			IsBootDisk:	true,
