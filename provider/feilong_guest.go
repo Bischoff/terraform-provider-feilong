@@ -195,7 +195,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the guest
 	client := guest.Client
-	diskList := []feilong.CreateGuestDisk {
+	diskList := []feilong.GuestDisk {
 		{
 			Size:		size,
 			IsBootDisk:	true,
