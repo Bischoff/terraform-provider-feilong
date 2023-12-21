@@ -120,7 +120,6 @@ func (p *FeilongProvider) DataSources(ctx context.Context) []func() datasource.D
 func (p *FeilongProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewFeilongCloudinitParams,
-		NewFeilongNetworkParams,
 		NewFeilongGuest,
 		NewFeilongVSwitch,
 	}

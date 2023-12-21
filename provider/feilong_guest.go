@@ -54,7 +54,6 @@ type FeilongGuestModel struct {
 	Mac		types.String	`tfsdk:"mac"`
 	VSwitch		types.String	`tfsdk:"vswitch"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
-	NetworkParams	types.String	`tfsdk:"network_params"`
 	MACAddress	types.String	`tfsdk:"mac_address"`
 	IPAddress	types.String	`tfsdk:"ip_address"`
 }
@@ -116,10 +115,6 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 				MarkdownDescription:	"Path to cloud-init parameters file",
 				Optional:		true,
 			},
-			"network_params": schema.StringAttribute {
-				MarkdownDescription:	"Path to network parameters file",
-				Optional:		true,
-			},
 			"mac_address": schema.StringAttribute {
 				MarkdownDescription:	"MAC address of first interface after deployment",
 				Computed:		true,
@@ -173,25 +168,8 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	image := data.Image.ValueString()
 	mac := data.Mac.ValueString()
 	vswitch := data.VSwitch.ValueString()
-	networkParams := data.NetworkParams.ValueString()
 	cloudinitParams := data.CloudinitParams.ValueString()
 	localUser := guest.LocalUser
-	transportFiles := ""
-	remoteHost := ""
-	if networkParams != "" {
-		if cloudinitParams != "" {
-			transportFiles = networkParams + "," + cloudinitParams
-			remoteHost = localUser
-		} else {
-			transportFiles = networkParams
-			remoteHost = localUser
-		}
-	} else {
-		if cloudinitParams != "" {
-			transportFiles = cloudinitParams
-			remoteHost = localUser
-		}
-	}
 
 	// Create the guest
 	client := guest.Client
@@ -237,8 +215,8 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
-		TransportFiles:	transportFiles,
-		RemoteHost:	remoteHost,
+		TransportFiles:	cloudinitParams,
+		RemoteHost:	localUser,
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {

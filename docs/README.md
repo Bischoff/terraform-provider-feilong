@@ -37,10 +37,6 @@ resource "feilong_cloudinit_params" "(some name)" {
   (...)
 }
 
-resource "feilong_network_params" "(some name)" {
-  (...)
-}
-
 resource "feilong_vswitch" "(some name)" {
   (...)
 }
@@ -66,7 +62,7 @@ output "feilong_guest_ip_address" {
 
 The `terraform` section allows to define the required versions of terraform and of the various providers. The `provider` section allows to define global settings, like the IP address or the domain name of the Feilong connector. Both are described more in details in [Global Parameters](global-options.md) chapter.
 
-The `feilong_network_params` resource sections allow to create locally a file that can be used as network parameters during the creation of the guests. The `feilong_cloudinit_params` resource sections allow to create locally a file that can be used to store parameters for [cloud-init](https://github.com/canonical/cloud-init) during the initial deployment. Both are described more in details in [Local Files](local-files.md) chapter.
+The `feilong_cloudinit_params` resource sections allow to create locally a file that can be used to store parameters for [cloud-init](https://github.com/canonical/cloud-init) during the initial deployment. It is described more in details in [Local Files](local-files.md) chapter.
 
 The `feilong_vswitch` resource sections allow to create s/390 [virtual switches](https://www.redbooks.ibm.com/redbooks/pdfs/sg247023.pdf), in the case that the existing vswitches do not match your needs. They are decribed more in details in [Virtual Switches](virtual-switches.md) chapter.
 
