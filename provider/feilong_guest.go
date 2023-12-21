@@ -83,11 +83,6 @@ func feilongGuest() *schema.Resource {
 				Type:		schema.TypeString,
 				Optional:	true,
 			},
-			"network_params": {
-				Description:	"Path to network parameters file",
-				Type:		schema.TypeString,
-				Optional:	true,
-			},
 			"mac_address": {
 				Description:	"MAC address of first interface after deployment",
 				Type:		schema.TypeString,
@@ -124,25 +119,8 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	image := d.Get("image").(string)
 	mac := d.Get("mac").(string)
 	vswitch := d.Get("vswitch").(string)
-	networkParams := d.Get("network_params").(string)
 	cloudinitParams := d.Get("cloudinit_params").(string)
 	localUser := meta.(*apiClient).LocalUser
-	transportFiles := ""
-	remoteHost := ""
-	if networkParams != "" {
-		if cloudinitParams != "" {
-			transportFiles = networkParams + "," + cloudinitParams
-			remoteHost = localUser
-		} else {
-			transportFiles = networkParams
-			remoteHost = localUser
-		}
-	} else {
-		if cloudinitParams != "" {
-			transportFiles = cloudinitParams
-			remoteHost = localUser
-		}
-	}
 
 	// Create the guest
 	client := meta.(*apiClient).Client
@@ -185,8 +163,8 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	// Deploy the guest
 	deployParams := feilong.DeployGuestParams {
 		Image:		image,
-		TransportFiles:	transportFiles,
-		RemoteHost:	remoteHost,
+		TransportFiles:	cloudinitParams,
+		RemoteHost:	localUser,
 	}
 	err = client.DeployGuest(userid, &deployParams)
 	if err != nil {

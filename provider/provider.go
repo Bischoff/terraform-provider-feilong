@@ -42,7 +42,6 @@ func New(version string) func() *schema.Provider {
 
 			ResourcesMap: map[string]*schema.Resource {
 				"feilong_cloudinit_params": feilongCloudinitParams(),
-				"feilong_network_params": feilongNetworkParams(),
 				"feilong_guest": feilongGuest(),
 				"feilong_vswitch": feilongVSwitch(),
 			},
