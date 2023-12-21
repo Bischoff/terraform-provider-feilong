@@ -1,4 +1,7 @@
-## 0.0.5 - Unreleased
+## 0.0.5 - 2023-12-24
+
+FEATURES:
+ * removed support for network parameters
 
 
 ## 0.0.4 - 2023-12-16

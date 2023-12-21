@@ -1,4 +1,0 @@
-BOOTPROTO='dhcp'
-STARTMODE='onboot'
-NAME='OSA Express Network card (1000)'
-MTU='0'
