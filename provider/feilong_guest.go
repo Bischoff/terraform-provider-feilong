@@ -203,15 +203,121 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 }
 
 func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// client := meta.(*apiClient).Client
+	client := meta.(*apiClient).Client
 
-	// return diag.Errorf("not implemented")
+	userid := d.Get("userid").(string)
+
+	// Obtain info about this guest
+	guestInfo, err := client.GetGuestInfo(userid)
+	if err != nil {
+		return diag.Errorf("Guest Querying Error: %s", err)
+	}
+
+	// Read number of vCPUs
+	err = d.Set("vcpus", guestInfo.Output.NumCPUs)
+	if err != nil {
+		return diag.Errorf("Virtual CPUs Setting Error: %s", err)
+	}
+
+	// Read memory
+	declaredMemory, err := convertToMegabytes(d.Get("memory").(string))
+	if err != nil {
+		return diag.Errorf("Conversion Error: %s", err)
+	}
+	obtainedMemory := guestInfo.Output.MaxMemKB / 1_024
+	if declaredMemory == obtainedMemory {
+		// do not overwrite memory if value equal but a different unit
+		tflog.Info(ctx, "Not replacing memory " +  d.Get("memory").(string) + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
+	} else {
+		err = d.Set("memory", strconv.Itoa(obtainedMemory) + "M")
+		if err != nil {
+			return diag.Errorf("Memory Setting Error: %s", err)
+		}
+	}
+
+	// Obtain first minidisk info
+	minidisksInfo, err := client.GetGuestMinidisksInfo(userid)
+	if err != nil {
+		return diag.Errorf("Minidisks Querying Error: %s", err)
+	}
+	if len(minidisksInfo.Output.Minidisks) < 1 {
+		return diag.Errorf("Minidisk Not Found Error")
+	}
+	firstMinidisk := minidisksInfo.Output.Minidisks[0]
+
+	// Read disk size
+	declaredDiskSize, err := convertToMegabytes(d.Get("disk").(string))
+	if err != nil {
+		return diag.Errorf("Conversion Error: %s", err)
+	}
+	if firstMinidisk.DeviceUnits != "Cylinders" {
+		return diag.Errorf("Unknown Minidisk Unit Error: %s", firstMinidisk.DeviceUnits)
+	}
+        // tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
+	obtainedDiskSize := (firstMinidisk.DeviceSize * 720) / 1_024
+	if declaredDiskSize == obtainedDiskSize {
+		// do not overwrite disk size if value equal but a different unit
+		tflog.Info(ctx, "Not replacing disk " + d.Get("disk").(string) + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
+	} else {
+		err = d.Set("disk", strconv.Itoa(obtainedDiskSize) + "M")
+		if err != nil {
+			return diag.Errorf("Disk Setting Error: %s", err)
+		}
+	}
+
+	// Obtain first network adapter info
+	adaptersInfo, err := client.GetGuestAdaptersInfo(userid)
+	if err != nil {
+		return diag.Errorf("Network Adapter Info Querying Error: %s", err)
+	}
+	if len(adaptersInfo.Output.Adapters) < 1 {
+		return diag.Errorf("Network Adapter Not Found Error")
+	}
+	firstAdapter := adaptersInfo.Output.Adapters[0]
+
+	// Read virtual switch name
+	err = d.Set("vswitch", firstAdapter.LANName)
+	if err != nil {
+		return diag.Errorf("VSwitch Setting Error: %s", err)
+	}
+
+	// Read MAC address
+	declaredMAC := d.Get("mac").(string)
+	obtainedMAC := firstAdapter.MACAddress
+	if strings.ToLower(declaredMAC[8:]) == strings.ToLower(obtainedMAC[8:]) {
+		// do not overwrite a MAC address if last 3 hex bytes are the same
+		tflog.Info(ctx, "Not replacing MAC address " + declaredMAC + " with other MAC address with same last 3 hex bytes " + obtainedMAC)
+	} else {
+		err = d.Set("mac", obtainedMAC)
+		if err != nil {
+			return diag.Errorf("MAC Address Setting Error: %s", err)
+		}
+	}
+
+	// Read IP address
+	declaredIPAddress := d.Get("ip_address").(string)
+	obtainedIPAddress := firstAdapter.IPAddress
+	if firstAdapter.IPVersion == "6" && strings.HasPrefix(obtainedIPAddress, "fe80:") {
+		// do not overwrite an IPv4 address with a link-local IPv6 address
+		tflog.Info(ctx, "Not replacing IP address " + declaredIPAddress + " with an IPv6 link-local address " + obtainedIPAddress)
+	} else {
+		err = d.Set("ip_address", obtainedIPAddress)
+		if err != nil {
+			return diag.Errorf("IP Address Setting Error: %s", err)
+		}
+	}
+
+	// CAVEATS:
+	//  - the image used during the deployment cannot be determined after the deployment
+	//  - the cloud init image used during the deployment cannot be determined after the deployment
+
 	return nil
 }
 
 func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// client := meta.(*apiClient).Client
 
+tflog.Info(ctx, "update function")
 	// return diag.Errorf("not implemented")
 	return nil
 }
@@ -274,12 +380,12 @@ func waitForLease(ctx context.Context, client feilong.Client, userid string, mac
 	}
 
 	stateConf := &resource.StateChangeConf {
-		Pending:    []string { waitingMsg },
-		Target:     []string { obtainedMsg },
-		Refresh:    waitFunction,
-		Timeout:    1 * time.Minute,
-		MinTimeout: 3 * time.Second,
-		Delay:      5 * time.Second,
+		Pending:	[]string { waitingMsg },
+		Target:		[]string { obtainedMsg },
+		Refresh:	waitFunction,
+		Timeout:	1 * time.Minute,
+		MinTimeout:	3 * time.Second,
+		Delay:		5 * time.Second,
 	}
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
