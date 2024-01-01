@@ -1,5 +1,8 @@
 ## 0.0.6 - Unreleased
 
+FEATURES:
+ * CRUD Read()
+
 
 ## 0.0.5 - 2023-12-24
 
