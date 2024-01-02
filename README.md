@@ -29,8 +29,8 @@ The Feilong provider is in HashiCorp's registry. To bypass the registry, you can
 Create a system-wide symbolic link:
 
 ```bash
-# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.1.0/linux_amd64/
-# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.1.0/linux_amd64/
+# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.1.1/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.1.1/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
 ```
 
@@ -60,7 +60,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.1.0"
+      version = "0.1.1"
     }
   }
 }
@@ -99,7 +99,6 @@ For more details, refer to the [documentation](docs/README.md).
 ## To Do
 
 * Write missing CRUD functions:
-  * Read()
   * Update() 
 * Support more z/VM resources:
   * network interface
