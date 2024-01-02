@@ -51,7 +51,7 @@ type FeilongGuestModel struct {
 	Memory		types.String	`tfsdk:"memory"`
 	Disk		types.String	`tfsdk:"disk"`
 	Image		types.String	`tfsdk:"image"`
-	Mac		types.String	`tfsdk:"mac"`
+	MAC		types.String	`tfsdk:"mac"`
 	VSwitch		types.String	`tfsdk:"vswitch"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
 	MACAddress	types.String	`tfsdk:"mac_address"`
@@ -166,7 +166,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	image := data.Image.ValueString()
-	mac := data.Mac.ValueString()
+	mac := data.MAC.ValueString()
 	vswitch := data.VSwitch.ValueString()
 	cloudinitParams := data.CloudinitParams.ValueString()
 	localUser := guest.LocalUser
@@ -258,13 +258,103 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//	return
-	// }
+	client := guest.Client
+
+	userid := data.UserId.ValueString()
+
+	// Obtain info about this guest
+	guestInfo, err := client.GetGuestInfo(userid)
+	if err != nil {
+		resp.Diagnostics.AddError("Guest Querying Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+
+	// Read number of vCPUs
+	data.VCPUs = types.Int64Value(int64(guestInfo.Output.NumCPUs))
+
+	// Read memory
+	declaredMemory, err := convertToMegabytes(data.Memory.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	obtainedMemory := guestInfo.Output.MaxMemKB / 1_024
+	if declaredMemory == obtainedMemory {
+		// do not overwrite memory if value equal but a different unit
+		tflog.Info(ctx, "Not replacing memory " +  data.Memory.ValueString() + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
+	} else {
+		data.Memory = types.StringValue(strconv.Itoa(obtainedMemory) + "M")
+	}
+
+	// Obtain first minidisk info
+	minidisksInfo, err := client.GetGuestMinidisksInfo(userid)
+	if err != nil {
+		resp.Diagnostics.AddError("Minidisks Querying Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	if len(minidisksInfo.Output.Minidisks) < 1 {
+		resp.Diagnostics.AddError("Minidisk Not Found Error", fmt.Sprintf("Got number: %d", len(minidisksInfo.Output.Minidisks)))
+		return
+	}
+	firstMinidisk := minidisksInfo.Output.Minidisks[0]
+
+	// Read disk size
+	declaredDiskSize, err := convertToMegabytes(data.Disk.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	if firstMinidisk.DeviceUnits != "Cylinders" {
+		resp.Diagnostics.AddError("Unknown Minidisk Unit Error", fmt.Sprintf("Got unit: %s", firstMinidisk.DeviceUnits))
+		return
+	}
+        // tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
+	obtainedDiskSize := (firstMinidisk.DeviceSize * 720) / 1_024
+	if declaredDiskSize == obtainedDiskSize {
+		// do not overwrite disk size if value equal but a different unit
+		tflog.Info(ctx, "Not replacing disk " + data.Disk.ValueString() + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
+	} else {
+		data.Disk = types.StringValue(strconv.Itoa(obtainedDiskSize) + "M")
+	}
+
+	// Obtain first network adapter info
+	adaptersInfo, err := client.GetGuestAdaptersInfo(userid)
+	if err != nil {
+		resp.Diagnostics.AddError("Network Adapter Info Querying Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	if len(adaptersInfo.Output.Adapters) < 1 {
+		resp.Diagnostics.AddError("Network Adapter Not Found Error", fmt.Sprintf("Got number: %d", len(adaptersInfo.Output.Adapters)))
+		return
+	}
+	firstAdapter := adaptersInfo.Output.Adapters[0]
+
+	// Read virtual switch name
+	data.VSwitch = types.StringValue(firstAdapter.LANName)
+
+	// Read MAC address
+	declaredMAC := data.MAC.ValueString()
+	obtainedMAC := firstAdapter.MACAddress
+	if strings.ToLower(declaredMAC[8:]) == strings.ToLower(obtainedMAC[8:]) {
+		// do not overwrite a MAC address if last 3 hex bytes are the same
+		tflog.Info(ctx, "Not replacing MAC address " + declaredMAC + " with other MAC address with same last 3 hex bytes " + obtainedMAC)
+	} else {
+		data.MAC = types.StringValue(obtainedMAC)
+	}
+
+	// Read IP address
+	declaredIPAddress := data.IPAddress.ValueString()
+	obtainedIPAddress := firstAdapter.IPAddress
+	if firstAdapter.IPVersion == "6" && strings.HasPrefix(obtainedIPAddress, "fe80:") {
+		// do not overwrite an IPv4 address with a link-local IPv6 address
+		tflog.Info(ctx, "Not replacing IP address " + declaredIPAddress + " with an IPv6 link-local address " + obtainedIPAddress)
+	} else {
+		data.IPAddress = types.StringValue(obtainedIPAddress)
+	}
+
+	// CAVEATS:
+	//  - the image used during the deployment cannot be determined after the deployment
+	//  - the cloud init image used during the deployment cannot be determined after the deployment
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -359,12 +449,12 @@ func waitForLease(ctx context.Context, client *feilong.Client, userid string, ma
 	}
 
 	stateConf := &oldresource.StateChangeConf {
-		Pending:    []string { waitingMsg },
-		Target:     []string { obtainedMsg },
-		Refresh:    waitFunction,
-		Timeout:    1 * time.Minute,
-		MinTimeout: 3 * time.Second,
-		Delay:      5 * time.Second,
+		Pending:	[]string { waitingMsg },
+		Target:		[]string { obtainedMsg },
+		Refresh:	waitFunction,
+		Timeout:	1 * time.Minute,
+		MinTimeout:	3 * time.Second,
+		Delay:		5 * time.Second,
 	}
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err

@@ -1,4 +1,29 @@
-## 0.0.4 - Unreleased
+## 0.1.1 - Unreleased
+
+BUGS:
+ * fix guest stats structure name
+
+FEATURES:
+ * add new function to query minidisks
+
+
+## 0.1.0 - 2023-12-31
+
+FEATURES:
+ * last initial functions
+ * last initial examples
+
+
+## 0.0.5 - 2023-12-24
+
+FEATURES:
+ * first documentation
+ * remove support for several transport files
+ * more functions
+ * more examples
+
+
+## 0.0.4 - 2023-12-16
 
 FEATURES:
  * support authentication tokens

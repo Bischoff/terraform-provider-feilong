@@ -13,17 +13,17 @@ import (
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#import-file
 
 type ImportFileOutput struct {
-	DestURL		string	`json:"dest_url"`
-	filesizeInBytes	int	`json:"filesize_in_bytes"`
-	MD5Sum		string	`json:"md5sum"`
+	DestURL		string		`json:"dest_url"`
+	filesizeInBytes	int		`json:"filesize_in_bytes"`
+	MD5Sum		string		`json:"md5sum"`
 }
 
 type ImportFileResult struct {
-	OverallRC	int	`json:"overallRC"`
-	ReturnCode	int	`json:"rc"`
-	Reason		int	`json:"rs"`
-	ErrorMsg	string	`json:"errmsg"`
-	ModuleId	int	`json:"modID"`
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
 	Output		ImportFileOutput `json:"output"`
 }
 
@@ -46,7 +46,7 @@ func (c *Client) ImportFile(file []byte) (*ImportFileResult, error) {
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#export-file
 
 type ExportFileParams struct {
-	SourceFile	string	`json:"source_file"`
+	SourceFile	string		`json:"source_file"`
 }
 
 type ExportFileResult struct {

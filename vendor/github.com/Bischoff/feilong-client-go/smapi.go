@@ -13,12 +13,12 @@ import (
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#report-health-of-smapi
 
 type SMAPIHealthSMAPI struct {
-	TotalSuccess	int	`json:"totalSuccess"`
-	TotalFail	int	`json:"totalFail"`
-	LastSuccess	string	`json:"lastSuccess"`
-	LastFail	string	`json:"lastFail"`
-	ContinuousFail	int	`json:"continuousFail"`
-	Healthy		bool	`json:"healthy"`
+	TotalSuccess	int		`json:"totalSuccess"`
+	TotalFail	int		`json:"totalFail"`
+	LastSuccess	string		`json:"lastSuccess"`
+	LastFail	string		`json:"lastFail"`
+	ContinuousFail	int		`json:"continuousFail"`
+	Healthy		bool		`json:"healthy"`
 }
 
 type SMAPIHealthResult struct {

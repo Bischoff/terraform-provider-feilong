@@ -13,18 +13,18 @@ import (
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-feilong-version
 
 type GetFeilongVersionOutput struct {
-	Version		string	`json:"version"`
-	APIVersion	string	`json:"api_version"`
-	MaxVersion	string	`json:"max_version"`
-	MinVersion	string	`json:"min_version"`
+	Version		string		`json:"version"`
+	APIVersion	string		`json:"api_version"`
+	MaxVersion	string		`json:"max_version"`
+	MinVersion	string		`json:"min_version"`
 }
 
 type GetFeilongVersionResult struct {
-	OverallRC	int	`json:"overallRC"`
-	ReturnCode	int	`json:"rc"`
-	Reason		int	`json:"rs"`
-	ErrorMsg	string	`json:"errmsg"`
-	ModuleId	int	`json:"modID"`
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
 	Output		GetFeilongVersionOutput `json:"output"`
 }
 

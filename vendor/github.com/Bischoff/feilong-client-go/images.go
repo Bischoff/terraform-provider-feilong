@@ -14,22 +14,22 @@ import (
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#list-images
 
 type ListImagesImage struct {
-	ImageName		string	`json:"imagename"`
-	ImageOSDistro		string	`json:"imageosdistro"`
-	MD5Sum			string	`json:"md5sum"`
-	DiskSizeUnits		string	`json:"disk_size_units"`
-	ImageSizeInBytes	string	`json:"image_size_in_bytes"`
-	Type			string	`json:"type"`
-	Comments		string	`json:"comments"`
-	LastAccessTime		float64	`json:"last_access_time"`
+	ImageName		string		`json:"imagename"`
+	ImageOSDistro		string		`json:"imageosdistro"`
+	MD5Sum			string		`json:"md5sum"`
+	DiskSizeUnits		string		`json:"disk_size_units"`
+	ImageSizeInBytes	string		`json:"image_size_in_bytes"`
+	Type			string		`json:"type"`
+	Comments		string		`json:"comments"`
+	LastAccessTime		float64		`json:"last_access_time"`
 }
 
 type ListImagesResult struct {
-	OverallRC	int	`json:"overallRC"`
-	ReturnCode	int	`json:"rc"`
-	Reason		int	`json:"rs"`
-	ErrorMsg	string	`json:"errmsg"`
-	ModuleId	int	`json:"modID"`
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
 	Output		[]ListImagesImage `json:"output"`
 }
 
@@ -57,16 +57,16 @@ func (c *Client) ListImages(imageName *string) (*ListImagesResult, error) {
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-image
 
 type CreateImageMeta struct {
-	OSVersion	string	`json:"os_version"`
-	MD5Sum		string	`json:"md5sum,omitempty"`
-	DiskType	string	`json:"disk_type,omitempty"`
+	OSVersion	string		`json:"os_version"`
+	MD5Sum		string		`json:"md5sum,omitempty"`
+	DiskType	string		`json:"disk_type,omitempty"`
 }
 
 type CreateImageParams struct {
-	ImageName	string	`json:"image_name"`
-	URL		string	`json:"url"`
-	ImageMeta	CreateImageMeta	`json:"image_meta"`
-	RemoteHost	string	`json:"remote_host,omitempty"`
+	ImageName	string		`json:"image_name"`
+	URL		string		`json:"url"`
+	ImageMeta	CreateImageMeta		`json:"image_meta"`
+	RemoteHost	string		`json:"remote_host,omitempty"`
 }
 
 func (c *Client) CreateImage(params *CreateImageParams) error {
@@ -86,23 +86,23 @@ func (c *Client) CreateImage(params *CreateImageParams) error {
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#export-image
 
 type ExportImageParams struct {
-	DestURL		string	`json:"dest_url"`
-	RemoteHost	string	`json:"remote_host,omitempty"`
+	DestURL		string		`json:"dest_url"`
+	RemoteHost	string		`json:"remote_host,omitempty"`
 }
 
 type ExportImageOutput struct {
-	ImageName	string	`json:"image_name"`
-	ImagePath	string	`json:"image_path"`
-	OSVersion	string	`json:"os_version"`
-	MD5Sum		string	`json:"md5sum"`
+	ImageName	string		`json:"image_name"`
+	ImagePath	string		`json:"image_path"`
+	OSVersion	string		`json:"os_version"`
+	MD5Sum		string		`json:"md5sum"`
 }
 
 type ExportImageResult struct {
-	OverallRC	int	`json:"overallRC"`
-	ReturnCode	int	`json:"rc"`
-	Reason		int	`json:"rs"`
-	ErrorMsg	string	`json:"errmsg"`
-	ModuleId	int	`json:"modID"`
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
 	Output		ExportImageOutput `json:"output"`
 }
 
@@ -131,17 +131,17 @@ func (c *Client) ExportImage(name string, params *ExportImageParams) (*ExportIma
 
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-root-disk-size-of-image
 
-type GetRootDiskSizeResult struct {
-	OverallRC	int	`json:"overallRC"`
-	ReturnCode	int	`json:"rc"`
-	Reason		int	`json:"rs"`
-	ErrorMsg	string	`json:"errmsg"`
-	ModuleId	int	`json:"modID"`
-	Output		string	`json:"output"`
+type GetImageRootDiskSizeResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		string		`json:"output"`
 }
 
-func (c *Client) GetRootDiskSize(name string) (*GetRootDiskSizeResult, error) {
-	var result GetRootDiskSizeResult
+func (c *Client) GetImageRootDiskSize(name string) (*GetImageRootDiskSizeResult, error) {
+	var result GetImageRootDiskSizeResult
 
 	body, err := c.doRequest("GET", "/images/" + name + "/root_disk_size", nil)
 	if err != nil {
@@ -159,7 +159,7 @@ func (c *Client) GetRootDiskSize(name string) (*GetRootDiskSizeResult, error) {
 
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-image
 
-func (c *Client) DeleteImage(name string) (error) {
+func (c *Client) DeleteImage(name string) error {
 	_, err := c.doRequest("DELETE", "/images/" + name, nil)
 
 	return err
