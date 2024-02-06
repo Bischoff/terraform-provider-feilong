@@ -8,7 +8,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.1.1"
+      version = "0.0.6"
     }
   }
 }
@@ -30,7 +30,7 @@ The `terraform` section is mandatory. The possible variables are:
 You can bypass the terraform registry by compiling the Terraform provider yourself, and by creating the a symbolic link like this:
 
 ```bash
-# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.1.1/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.6/linux_amd64/
 # ln -s /home/someuser/bin/terraform-provider-feilong
 ```
 

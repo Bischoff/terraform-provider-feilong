@@ -19,7 +19,7 @@ You can then reference those files from your Feilong guests declarations.
 
 ### Cloud-init Parameters Sections
 
-The `feilong_cloudinit_params` sections are optional. They may contain the following options:
+The `feilong_cloudinit_params` sections are optional. They may be used to define the following options:
 
  * `name` (mandatory): any arbitrary name to identify this resource. Please try to make it unique.
  * `hostname` (mandatory): the desired fully qualified domain name of the z/VM guest.
