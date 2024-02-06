@@ -1,7 +1,8 @@
-## 0.0.6 - Unreleased
+## 0.0.6 - 2024-02-18
 
 FEATURES:
- * CRUD Read()
+ * Read() for feilong guest
+ * Update() for feilong guest
 
 
 ## 0.0.5 - 2023-12-24

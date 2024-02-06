@@ -16,7 +16,7 @@ import (
 
 	// There is no replacement for the old resource.StateChangeConf
 	// (see https://discuss.hashicorp.com/t/terraform-plugin-framework-what-is-the-replacement-for-waitforstate-or-retrycontext/45538)
-        oldresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	oldresource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -243,7 +243,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	data.IPAddress = types.StringValue(ipAddress)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "created a Feilong guest resource")
+	tflog.Trace(ctx, "Created a Feilong guest resource")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -259,7 +259,6 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	client := guest.Client
-
 	userid := data.UserId.ValueString()
 
 	// Obtain info about this guest
@@ -281,7 +280,7 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 	obtainedMemory := guestInfo.Output.MaxMemKB / 1_024
 	if declaredMemory == obtainedMemory {
 		// do not overwrite memory if value equal but a different unit
-		tflog.Info(ctx, "Not replacing memory " +  data.Memory.ValueString() + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
+		tflog.Info(ctx, "Not replacing memory size " + data.Memory.ValueString() + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
 	} else {
 		data.Memory = types.StringValue(strconv.Itoa(obtainedMemory) + "M")
 	}
@@ -308,11 +307,11 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 		resp.Diagnostics.AddError("Unknown Minidisk Unit Error", fmt.Sprintf("Got unit: %s", firstMinidisk.DeviceUnits))
 		return
 	}
-        // tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
+	// tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
 	obtainedDiskSize := (firstMinidisk.DeviceSize * 720) / 1_024
 	if declaredDiskSize == obtainedDiskSize {
 		// do not overwrite disk size if value equal but a different unit
-		tflog.Info(ctx, "Not replacing disk " + data.Disk.ValueString() + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
+		tflog.Info(ctx, "Not replacing disk size " + data.Disk.ValueString() + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
 	} else {
 		data.Disk = types.StringValue(strconv.Itoa(obtainedDiskSize) + "M")
 	}
@@ -356,12 +355,16 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 	//  - the image used during the deployment cannot be determined after the deployment
 	//  - the cloud init image used during the deployment cannot be determined after the deployment
 
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "Read characteristics of Feilong guest resource")
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data FeilongGuestModel
+	var state FeilongGuestModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -369,13 +372,151 @@ func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//	return
-	// }
+	// Also read current state, for comparaison
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	client := guest.Client
+	userid := data.UserId.ValueString()
+
+	// Address userid changes
+	oldUserid := state.UserId.ValueString()
+	newUserid := data.UserId.ValueString()
+	if newUserid != oldUserid {
+		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change userid \"%s\" to \"%s\"", oldUserid, newUserid))
+		return
+	}
+
+	// Address vCPUs changes
+	oldVCPUs := int(state.VCPUs.ValueInt64())
+	newVCPUs := int(data.VCPUs.ValueInt64())
+	if newVCPUs < oldVCPUs {
+		resp.Diagnostics.AddError("Value Can Only Increase", fmt.Sprintf("Cannot decrease number of vCPUs from %d to %d", oldVCPUs, newVCPUs))
+		return
+	} else if newVCPUs > oldVCPUs {
+		liveResizeCPUsParams := feilong.LiveResizeGuestCPUsParams {
+			CPUCount: newVCPUs,
+		}
+		err := client.LiveResizeGuestCPUs(userid, &liveResizeCPUsParams)
+		if err != nil {
+			resp.Diagnostics.AddError("CPUs Resizing Error", fmt.Sprintf("Got error: %s", err))
+			return
+		}
+		tflog.Info(ctx, "Increased number of vCPUs from " + strconv.Itoa(oldVCPUs) + " to " + strconv.Itoa(newVCPUs))
+	}
+
+	// Address memory changes
+	oldMemory := state.Memory.ValueString()
+	newMemory := data.Memory.ValueString()
+	if newMemory != oldMemory {
+		oldMemoryMB, err := convertToMegabytes(oldMemory)
+		if err != nil {
+			resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+			return
+		}
+		newMemoryMB, err := convertToMegabytes(newMemory)
+		if err != nil {
+			resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+			return
+		}
+		if newMemoryMB < oldMemoryMB {
+			resp.Diagnostics.AddError("Value Can Only Increase", fmt.Sprintf("Cannot decrease memory size from %s to %s", oldMemory, newMemory))
+			return
+		} else if newMemoryMB > oldMemoryMB {
+			liveResizeMemoryParams := feilong.LiveResizeGuestMemoryParams {
+				Size: newMemory,
+			}
+			err = client.LiveResizeGuestMemory(userid, &liveResizeMemoryParams)
+			if err != nil {
+				resp.Diagnostics.AddError("Memory Resizing Error", fmt.Sprintf("Got error: %s", err))
+				return
+			}
+			tflog.Info(ctx, "Increased memory size from " + oldMemory + " to " + newMemory)
+		} else {
+			// do not change memory size if value equal but a different unit
+			tflog.Info(ctx, "Not replacing memory size " + oldMemory + " with equal value " + newMemory)
+		}
+	}
+
+	// Address main disk size changes
+	oldDisk := state.Disk.ValueString()
+	newDisk := data.Disk.ValueString()
+	if newDisk != oldDisk {
+		oldDiskMB, err := convertToMegabytes(oldDisk)
+		if err != nil {
+			resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+			return
+		}
+		newDiskMB, err := convertToMegabytes(newDisk)
+		if err != nil {
+			resp.Diagnostics.AddError("Conversion Error", fmt.Sprintf("Got error: %s", err))
+			return
+		}
+		if newDiskMB != oldDiskMB {
+			// we could remove the old disk and recreate a new one, but then all the user data would be lost
+			resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change main disk size from %s to %s", oldDisk, newDisk))
+			return
+		} else {
+			// do not change disk size if value equal but a different unit
+			tflog.Info(ctx, "Not replacing disk size " + oldDisk + " with equal value " + newDisk)
+		}
+	}
+
+	// Address image changes
+	oldImage := state.Image.ValueString()
+	newImage := data.Image.ValueString()
+	if newImage != oldImage {
+		// we could reapply a different image, but then all the user data would be lost
+		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage))
+		return
+	}
+
+	// Address desired MAC changes
+	oldMac := state.MAC.ValueString()
+	newMac := data.MAC.ValueString()
+	if newMac != oldMac {
+		if strings.ToLower(newMac[8:]) != strings.ToLower(oldMac[8:]) {
+			// we could delete the network interface and create a new one, but then it would not be same interface anymore
+			resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change MAC address of main interface from \"%s\" to \"%s\"", oldMac, newMac))
+			return
+		} else {
+			tflog.Info(ctx, "Not replacing MAC address " + oldMac + " with other MAC address with same last 3 hex bytes " + newMac)
+		}
+	}
+
+	// Address desired vswitch changes
+	oldVSwitch := state.VSwitch.ValueString()
+	newVSwitch := data.VSwitch.ValueString()
+	if newVSwitch != oldVSwitch {
+		// we could delete the network interface and create a new one, but then it would not be same interface anymore
+		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change virtual switch of main interface from \"%s\" to \"%s\"", oldVSwitch, newVSwitch))
+		return
+	}
+
+	// Address cloud-init parameter changes
+	oldCloudinitParams := state.CloudinitParams.ValueString()
+	newCloudinitParams := data.CloudinitParams.ValueString()
+	if newCloudinitParams != oldCloudinitParams {
+		// we could redeploy, but then all the user data would be lost
+		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change cloud-init parameters used to install the system from \"%s\" to \"%s\"", oldCloudinitParams, newCloudinitParams))
+		return
+	}
+
+	// Get computed values
+	var macAddress string
+	var ipAddress string
+	err := getAddresses(client, userid, &macAddress, &ipAddress)
+	if err != nil {
+		resp.Diagnostics.AddError("Error Reading the IP Address", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	data.MACAddress = types.StringValue(macAddress)
+	data.IPAddress = types.StringValue(ipAddress)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "Updated Feilong guest resource")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -393,11 +534,15 @@ func (guest *FeilongGuest) Delete(ctx context.Context, req resource.DeleteReques
 	client := guest.Client
 	userid := data.UserId.ValueString()
 
+	// Delete the guest
 	err := client.DeleteGuest(userid)
 	if err != nil {
 		resp.Diagnostics.AddError("Deletion Error", fmt.Sprintf("Got error: %s", err))
 		return
 	}
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "Deleted the Feilong guest resource")
 }
 
 func (guest *FeilongGuest) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
