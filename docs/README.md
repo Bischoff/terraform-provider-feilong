@@ -2,14 +2,11 @@
 
 ### Introduction and Ecosystem
 
-The Terraform provider for Feilong enables to dynamically deploy guests on a s/390 system. It leverages [Feilong](https://openmainframeproject.org/projects/feilong/) connector, which is at the core of the [Cloud Infrastructure Center](https://www.ibm.com/products/cloud-infrastructure-center) of IBM. However, Feilong can be used alone, without a full CIC deployment.
+The Terraform provider for Feilong enables to dynamically deploy guests on a s/390 system that runs z/VM operating system. It leverages [Feilong](https://openmainframeproject.org/projects/feilong/) connector, which is at the core of the [Cloud Infrastructure Center](https://www.ibm.com/products/cloud-infrastructure-center) of IBM. However, Feilong can be used alone, without a full CIC deployment.
 
-Feilong offers an HTTP REST API that manages z/VMs by transmitting requests to the more complex [Systems Management API](https://www.ibm.com/docs/en/zvm/7.2?topic=introduction-smapi-quick-start-guide), also known as SMAPI. The [Go library for Feilong](https://github.com/Bischoff/feilong-client-go) allows to call that REST API in a simple manner from a Go program. The Terraform provider for Feilong relies on that library and is seen by the [Terraform](https://www.terraform.io/) automation tool as a plugin.
+Feilong offers an HTTP REST API that manages VMs by transmitting requests to the more complex [Systems Management API](https://www.ibm.com/docs/en/zvm/7.2?topic=introduction-smapi-quick-start-guide), also known as SMAPI. The [Go library for Feilong](https://github.com/Bischoff/feilong-client-go) allows to call that REST API in a simple manner from a Go program. The Terraform provider for Feilong relies on that library and is seen by the [Terraform](https://www.terraform.io/) automation tool as a plugin.
 
 Terraform relies on `main.tf` files for deploying VMs. The Feilong provider extends the syntax of those configuration files to take into account the specificities of z/VM.
-
-
-### Global Structure of the Configuration File
 
 A normal cycle of commands to use the `main.tf` file is:
 ```bash
@@ -18,6 +15,9 @@ $ terraform apply
 (use the VMS)
 $ terraform destroy
 ```
+
+
+### Global Structure of the Configuration File
 
 The `main.tf` file is made of the following sections:
 
@@ -49,6 +49,7 @@ resource "feilong_guest" "(some name)" {
 
 (other resources for the other providers)
 
+
 output "feilong_guest_mac_address" {
   value = feilong_guest.(some name).mac_address
 }
@@ -68,6 +69,6 @@ The `feilong_vswitch` resource sections allow to create s/390 [virtual switches]
 
 The `feilong_guest` resource sections allow to create s/390 guest VMs (`userid`s in z/VM parlance). They are described more in details in [Guests](guests.md) chapter.
 
-The `output` section allow displaying computed values at the end of the terraform deployment. These are values that were unknown at the start of the deployment.
+The `output` sections allow to display computed values at the end of the terraform deployment. These are values that were unknown at the start of the deployment.
 
 Terraform also has the notion of "data sources". They are currently not used in the Terraform provider for Feilong.

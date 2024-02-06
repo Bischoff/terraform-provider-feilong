@@ -204,7 +204,6 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 
 func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*apiClient).Client
-
 	userid := d.Get("userid").(string)
 
 	// Obtain info about this guest
@@ -227,7 +226,7 @@ func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	obtainedMemory := guestInfo.Output.MaxMemKB / 1_024
 	if declaredMemory == obtainedMemory {
 		// do not overwrite memory if value equal but a different unit
-		tflog.Info(ctx, "Not replacing memory " +  d.Get("memory").(string) + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
+		tflog.Info(ctx, "Not replacing memory size " + d.Get("memory").(string) + " with equal value " + strconv.Itoa(obtainedMemory) + "M")
 	} else {
 		err = d.Set("memory", strconv.Itoa(obtainedMemory) + "M")
 		if err != nil {
@@ -253,11 +252,11 @@ func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	if firstMinidisk.DeviceUnits != "Cylinders" {
 		return diag.Errorf("Unknown Minidisk Unit Error: %s", firstMinidisk.DeviceUnits)
 	}
-        // tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
+	// tracks/cylinder=15  blocks/track=12  kilobytes/block=4  15*12*4=720
 	obtainedDiskSize := (firstMinidisk.DeviceSize * 720) / 1_024
 	if declaredDiskSize == obtainedDiskSize {
 		// do not overwrite disk size if value equal but a different unit
-		tflog.Info(ctx, "Not replacing disk " + d.Get("disk").(string) + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
+		tflog.Info(ctx, "Not replacing disk size " + d.Get("disk").(string) + " with equal value " + strconv.Itoa(obtainedDiskSize) + "M")
 	} else {
 		err = d.Set("disk", strconv.Itoa(obtainedDiskSize) + "M")
 		if err != nil {
@@ -315,18 +314,143 @@ func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 }
 
 func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// client := meta.(*apiClient).Client
+	client := meta.(*apiClient).Client
+	userid := d.Get("userid").(string)
 
-tflog.Info(ctx, "update function")
-	// return diag.Errorf("not implemented")
+	// Address userid changes
+	if d.HasChange("userid") {
+		oldValue, _ := d.GetChange("userid")
+		oldUserid := oldValue.(string)
+		d.Set("userid", oldUserid)
+		return diag.Errorf("Cannot change userid \"%s\" to \"%s\"", oldUserid, userid)
+	}
+
+	// Address vCPUs changes
+	if d.HasChange("vcpus") {
+		oldValue, newValue := d.GetChange("vcpus")
+		oldvCPUs := oldValue.(int)
+		newvCPUs := newValue.(int)
+		if newvCPUs <= oldvCPUs {
+			d.Set("vcpus", oldvCPUs)
+			return diag.Errorf("Cannot decrease number of vCPUs from %d to %d", oldvCPUs, newvCPUs)
+		}
+		liveResizeCPUsParams := feilong.LiveResizeGuestCPUsParams {
+			CPUCount: newvCPUs,
+		}
+		err := client.LiveResizeGuestCPUs(userid, &liveResizeCPUsParams)
+		if err != nil {
+			d.Set("vcpus", oldvCPUs)
+			return diag.Errorf("CPUs resizing error: %s", err)
+		}
+		tflog.Info(ctx, "Increased number of vCPUs from " + strconv.Itoa(oldvCPUs) + " to " + strconv.Itoa(newvCPUs))
+	}
+
+	// Address memory changes
+	if d.HasChanges("memory") {
+		oldValue, newValue := d.GetChange("memory")
+		oldMemoryMB, err := convertToMegabytes(oldValue.(string))
+		if err != nil {
+			d.Set("memory", oldValue.(string))
+			return diag.Errorf("Conversion Error: %s", err)
+		}
+		newMemoryMB, err := convertToMegabytes(newValue.(string))
+		if err != nil {
+			d.Set("memory", oldValue.(string))
+			return diag.Errorf("Conversion Error: %s", err)
+		}
+		if newMemoryMB < oldMemoryMB {
+			d.Set("memory", oldValue.(string))
+			return diag.Errorf("Cannot decrease memory size from %s to %s", oldValue.(string), newValue.(string))
+		} else if newMemoryMB > oldMemoryMB {
+			liveResizeMemoryParams := feilong.LiveResizeGuestMemoryParams {
+				Size: newValue.(string),
+			}
+			err = client.LiveResizeGuestMemory(userid, &liveResizeMemoryParams)
+			if err != nil {
+				d.Set("memory", oldValue.(string))
+				return diag.Errorf("Memory resizing error: %s", err)
+			}
+			tflog.Info(ctx, "Increased memory size from " + oldValue.(string) + " to " + newValue.(string))
+		} else {
+			tflog.Info(ctx, "Not replacing memory size " + oldValue.(string) + " with equal value " + newValue.(string))
+		}
+	}
+
+	// Address main disk size changes
+	if d.HasChanges("disk") {
+		oldValue, newValue := d.GetChange("disk")
+		oldDiskMB, err := convertToMegabytes(oldValue.(string))
+		if err != nil {
+			d.Set("disk", oldValue.(string))
+			return diag.Errorf("Conversion Error: %s", err)
+		}
+		newDiskMB, err := convertToMegabytes(newValue.(string))
+		if err != nil {
+			d.Set("disk", oldValue.(string))
+			return diag.Errorf("Conversion Error: %s", err)
+		}
+		if newDiskMB != oldDiskMB {
+			// we could remove the old disk and recreate a new one, but then all the user data would be lost
+			d.Set("disk", oldValue.(string))
+			return diag.Errorf("Cannot change main disk size from %s to %s", oldValue.(string), newValue.(string))
+		} else {
+			// do not change disk size if value equal but a different unit
+			tflog.Info(ctx, "Not replacing disk size " + oldValue.(string) + " with equal value " + newValue.(string))
+		}
+	}
+
+	// Address image changes
+	if d.HasChange("image") {
+		oldValue, newValue := d.GetChange("image")
+		oldImage := oldValue.(string)
+		newImage := newValue.(string)
+		// we could reapply a different image, but then all the user data would be lost
+		d.Set("image", oldImage)
+		return diag.Errorf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage)
+	}
+
+	// Address desired MAC changes
+	if d.HasChange("mac") {
+		oldValue, newValue := d.GetChange("mac")
+		oldMAC := oldValue.(string)
+		newMAC := newValue.(string)
+		if strings.ToLower(newMAC[8:]) != strings.ToLower(oldMAC[8:]) {
+			// we could delete the network interface and create a new one, but then it would not be same interface anymore
+			d.Set("mac", oldMAC)
+			return diag.Errorf("Cannot change MAC address of main interface from \"%s\" to \"%s\"", oldMAC, newMAC)
+		} else {
+			tflog.Info(ctx, "Not replacing MAC address " + oldMAC + " with other MAC address with same last 3 hex bytes " + newMAC)
+		}
+	}
+
+	// Address desired vswitch changes
+	if d.HasChange("vswitch") {
+		oldValue, newValue := d.GetChange("vswitch")
+		oldVSwitch := oldValue.(string)
+		newVSwitch := newValue.(string)
+		// we could delete the network interface and create a new one, but then it would not be same interface anymore
+		d.Set("vswitch", oldVSwitch)
+		return diag.Errorf("Cannot change virtual switch of main interface from \"%s\" to \"%s\"", oldVSwitch, newVSwitch)
+	}
+
+	// Address cloud-init parameter changes
+	if d.HasChange("cloudinit_params") {
+		oldValue, newValue := d.GetChange("cloudinit_params")
+		oldCloudinitParams := oldValue.(string)
+		newCloudinitParams := newValue.(string)
+		// we could redeploy, but then all the user data would be lost
+		d.Set("cloudinit_params", oldCloudinitParams)
+		return diag.Errorf("Cannot change cloud-init parameters used to install the system from \"%s\" to \"%s\"", oldCloudinitParams, newCloudinitParams)
+	}
+
 	return nil
 }
 
 func feilongGuestDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*apiClient).Client
-
 	userid := d.Get("userid").(string)
 
+	// Delete the guest
 	err := client.DeleteGuest(userid)
 	if err != nil {
 		return diag.Errorf("Deletion Error: %s", err)
