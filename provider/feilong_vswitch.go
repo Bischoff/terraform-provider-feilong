@@ -10,6 +10,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"strconv"
+	"golang.org/x/exp/maps"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -204,13 +206,92 @@ func (guest *FeilongVSwitch) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//	return
-	// }
+	client := guest.Client
+	vswitch := data.VSwitch.ValueString()
+
+	// Obtain info about this vswitch
+	vswitchDetails, err := client.GetVSwitchDetails(vswitch)
+	if err != nil {
+		resp.Diagnostics.AddError("VSwitch Querying Error", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+
+	// Read real device
+	devices := maps.Keys(vswitchDetails.Output.RealDevices)
+	if len(devices) != 1 {
+		resp.Diagnostics.AddError("VSwitch Querying Error", fmt.Sprintf("Unexpected number of real devices %d for vswitch %s", len(devices), vswitch))
+		return
+	}
+	realDevice := devices[0]
+	data.RealDevice = types.StringValue(realDevice)
+
+	// Read controller
+	controller := vswitchDetails.Output.RealDevices[realDevice].Controller
+	if data.Controller.IsNull() && controller == "NONE" {
+		tflog.Info(ctx, "Not replacing undeclared controller with default value NONE")
+	} else {
+		data.Controller = types.StringValue(controller)
+	}
+
+	// Read network type
+	networkType := vswitchDetails.Output.TransportType
+	if data.NetworkType.IsNull() && networkType == "ETHERNET" {
+		tflog.Info(ctx, "Not replacing undeclared network type with default value ETHERNET")
+	} else {
+		data.NetworkType = types.StringValue(networkType)
+	}
+
+	// Read VLAN id
+	vlanId, err := strconv.Atoi(vswitchDetails.Output.VLANId)
+	if err != nil {
+		resp.Diagnostics.AddError("VLAN Id Conversion Error: %s", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	data.VLANId = types.Int64Value(int64(vlanId))
+
+	// Read port type
+	portType := vswitchDetails.Output.PortType
+	data.PortType = types.StringValue(portType)
+
+	// Read GVRP
+	gvrp := vswitchDetails.Output.GVRPEnabledAttribute
+	if data.GVRP.IsNull() && gvrp == "NOGVRP" {
+		tflog.Info(ctx, "Not replacing undeclared GVRP with default value NOGVRP")
+	} else {
+		data.GVRP = types.StringValue(gvrp)
+	}
+
+	// Read queue memory
+	queueMem, err := strconv.Atoi(vswitchDetails.Output.QueueMemoryLimit)
+	if err != nil {
+		resp.Diagnostics.AddError("Queue Memory Conversion Error: %s", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	if data.QueueMem.IsNull() && queueMem == 8 {
+		tflog.Info(ctx, "Not replacing undeclared queue memory with default value 8")
+	} else {
+		data.QueueMem = types.Int64Value(int64(queueMem))
+	}
+
+	// Read native VLAN id
+	nativeVlanId, err := strconv.Atoi(vswitchDetails.Output.NativeVLANId)
+	if err != nil {
+		resp.Diagnostics.AddError("Native VLAN Id Conversion Error: %s", fmt.Sprintf("Got error: %s", err))
+		return
+	}
+	if data.NativeVLANId.IsNull() && nativeVlanId == 1 {
+		tflog.Info(ctx, "Not replacing undeclared native VLAN id with default value 1")
+	} else {
+		data.NativeVLANId = types.Int64Value(int64(nativeVlanId))
+	}
+
+	// CAVEATS:
+	//  - the connection type cannot be determined after the deployment
+	//  - the router cannot be determined after the deployment
+	//  - the persist flag cannot be determined after the deployment
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "Read characteristics of Feilong virtual switch resource")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
