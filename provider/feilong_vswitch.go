@@ -287,9 +287,52 @@ func feilongVSwitchRead(ctx context.Context, d *schema.ResourceData, meta any) d
 }
 
 func feilongVSwitchUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// client := meta.(*apiClient).Client
+	client := meta.(*apiClient).Client
+	vswitch := d.Get("vswitch").(string)
 
-	// return diag.Errorf("not implemented")
+// TODO
+// name			Arbitrary name for the resource
+// vswitch		Virtual switch name for z/VM
+// real_device		Real device number
+// controller		Controller
+// connection_type	Connection type (CONNECT, DISCONNECT, or NOUPLINK)
+// network_type		Network type (IP or ETHERNET)
+// router		Router role (NONROUTER or PRIROUTER)
+
+	// Address VLAN id changes
+	if d.HasChange("vlan_id") {
+		oldValue, newValue := d.GetChange("vlan_id")
+		oldVLANid := oldValue.(int)
+		newVLANid := newValue.(int)
+		vswitchDetails, err := client.GetVSwitchDetails(vswitch)
+		if err != nil {
+			return diag.Errorf("VSwitch Querying Error: %s", err)
+		}
+		users := maps.Keys(vswitchDetails.Output.AuthorizedUsers)
+		for _, user := range users {
+			userVLANid := feilong.UserVLANId {
+				UserId: user,
+				VLANId: newVLANid,
+			}
+			setUserVLANIdToVSwitchParams := feilong.SetUserVLANIdToVSwitchParams {
+				UserVLANId: userVLANid,
+			}
+			err := client.SetUserVLANIdToVSwitch(vswitch, &setUserVLANIdToVSwitchParams)
+			if err != nil {
+				d.Set("vlan_id", oldVLANid)
+				return diag.Errorf("VLAN id changing error: %s", err)
+			}
+			tflog.Info(ctx, "Changed VLAN id for " + user + " from " + strconv.Itoa(oldVLANid) + " to " + strconv.Itoa(newVLANid))
+		}
+	}
+
+// TODO
+// port_type		Port type (ACCESS or TRUNK)
+// gvrp			Whether to use GVRP protocol (GVRP or NOGVRP)
+// queue_mem		QDIO buffer size in megabytes
+// native_vlan_id	Native VLAN identifier
+// persist		Whether virtual switch is permanent
+
 	return nil
 }
 

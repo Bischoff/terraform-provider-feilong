@@ -85,7 +85,6 @@ For more details, refer to the [documentation](docs/README.md).
 ## To Do
 
 * Write missing CRUD functions:
-  * vswitch Update()
   * cloudinit Read()
   * cloudinit Update()
 * Support more z/VM resources:

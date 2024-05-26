@@ -2,6 +2,7 @@
 
 FEATURES:
  * Read() for custom switch
+ * Update() for custom switch
 
 
 ## 0.0.6 - 2024-02-18
