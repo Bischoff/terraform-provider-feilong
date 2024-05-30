@@ -212,6 +212,18 @@ func feilongVSwitchRead(ctx context.Context, d *schema.ResourceData, meta any) d
 	if err != nil {
 		return diag.Errorf("VLAN Id Conversion Error: %s", err)
 	}
+	tflog.Info(ctx, "Default VLAN id: " + vswitchDetails.Output.VLANId)
+	users := maps.Keys(vswitchDetails.Output.AuthorizedUsers)
+	for _, user := range users {
+		vlan_ids := vswitchDetails.Output.AuthorizedUsers[user].VLANIds
+		for _, id := range vlan_ids {
+			vlanId, err = strconv.Atoi(id)
+			if err != nil {
+				return diag.Errorf("VLAN Id Conversion Error: %s", err)
+			}
+			tflog.Info(ctx, "Overwritten with VLAN id for user " + user + ": " + id)
+		}
+	}
 	err = d.Set("vlan_id", vlanId)
 	if err != nil {
 		return diag.Errorf("VLAN Id Setting Error: %s", err)
