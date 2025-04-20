@@ -12,9 +12,10 @@ resource "feilong_guest" "opensuse" {
   image      = "opensuse155"
 
   // optional parameters:
-  userid     = "LINUX097"
-  vcpus      = 2
-  mac        = "12:34:56:78:9a:bc"
+  userid           = "LINUX097"
+  vcpus            = 2
+  adapter_address  = "0600"
+  mac              = "12:34:56:78:9a:bc"
   cloudinit_params = feilong_cloudinit_params.cloudinit.file
   vswitch          = feilong_vswitch.switch.vswitch
 }
@@ -31,7 +32,8 @@ The `feilong_guest` resource sections are optional. They may be used to define t
  * `image` (mandatory): the imaged used to create the guest. This image has to be prepared as explained in Feilong documentation.
  * `userid` (optional): the desired name of the guest on the z/VM side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `vcpus` (optional): the desired number of virtual CPUs on the guest. If omitted, it will be set to `1`.
- * `mac` (optional): the desired MAC address of the guest, as 6 hexadecimal digits separed by colons. Only last 3 bytes will be used, the first 3 will be ignored by Feilong. Feilong will set these first 3 bytes arbitrarily.
+ * `adapter_address` (optional): the desired virtual device address of the first network interface of the guest, as 4 hexadecimal digits. If omitted, it will be set to `1000`.
+ * `mac` (optional): the desired MAC address of the first network interface of the guest, as 6 hexadecimal digits separed by colons. Only last 3 bytes will be used, the first 3 will be ignored by Feilong. Feilong will set these first 3 bytes arbitrarily.
  * `cloudinit_params` (optional): the path to a local file containing an ISO 9660 image containing cloud-init parameters in the format used by openstack.
  * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `DEVNET`.
 

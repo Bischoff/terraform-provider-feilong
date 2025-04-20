@@ -52,6 +52,7 @@ type FeilongGuestModel struct {
 	Disk		types.String	`tfsdk:"disk"`
 	Image		types.String	`tfsdk:"image"`
 	MAC		types.String	`tfsdk:"mac"`
+	AdapterAddress  types.String    `tfsdk:"adapter_address"`
 	VSwitch		types.String	`tfsdk:"vswitch"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
 	MACAddress	types.String	`tfsdk:"mac_address"`
@@ -98,6 +99,12 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 			"image": schema.StringAttribute {
 				MarkdownDescription:	"Image name",
 				Required:		true,
+			},
+			"adapter_address": schema.StringAttribute {
+				MarkdownDescription:	"Desired virtual device of first interface",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString("1000"),
 			},
 			"mac": schema.StringAttribute {
 				MarkdownDescription:	"Desired MAC address of first interface",
@@ -166,6 +173,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	image := data.Image.ValueString()
+	adapterAddress := data.AdapterAddress.ValueString()
 	mac := data.MAC.ValueString()
 	vswitch := data.VSwitch.ValueString()
 	cloudinitParams := data.CloudinitParams.ValueString()
@@ -193,6 +201,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the first network interface
 	createNICParams := feilong.CreateGuestNICParams {
+		VDev:           adapterAddress,
 		MACAddress:	mac,
 	}
 	err = client.CreateGuestNIC(userid, &createNICParams)
@@ -206,7 +215,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		Couple:		true,
 		VSwitch:	vswitch,
 	}
-	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
+	err = client.UpdateGuestNIC(userid, adapterAddress, &updateNICParams)
 	if err != nil {
 		resp.Diagnostics.AddError("NIC Coupling Error", fmt.Sprintf("Got error: %s", err))
 		return
@@ -330,6 +339,8 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Read virtual switch name
 	data.VSwitch = types.StringValue(firstAdapter.LANName)
+
+	// TODO: read adapter virtual device address
 
 	// Read MAC address
 	declaredMAC := data.MAC.ValueString()
@@ -472,6 +483,8 @@ func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage))
 		return
 	}
+
+	// TODO: address adapter VDev changes
 
 	// Address desired MAC changes
 	oldMac := state.MAC.ValueString()
