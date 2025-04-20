@@ -66,6 +66,12 @@ func feilongGuest() *schema.Resource {
 				Type:		schema.TypeString,
 				Required:	true,
 			},
+			"adapter_address": {
+				Description:	"Desired virtual device of first interface",
+				Type:		schema.TypeString,
+				Optional:	true,
+				Default:	"1000",
+			},
 			"mac": {
 				Description:	"Desired MAC address of first interface",
 				Type:		schema.TypeString,
@@ -117,6 +123,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.Errorf("Conversion Error: %s", err)
 	}
 	image := d.Get("image").(string)
+	adapterAddress := d.Get("adapter_address").(string)
 	mac := d.Get("mac").(string)
 	vswitch := d.Get("vswitch").(string)
 	cloudinitParams := d.Get("cloudinit_params").(string)
@@ -143,6 +150,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	// Create the first network interface
 	createNICParams := feilong.CreateGuestNICParams {
+		VDev:           adapterAddress,
 		MACAddress:	mac,
 	}
 	err = client.CreateGuestNIC(userid, &createNICParams)
@@ -155,7 +163,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		Couple:		true,
 		VSwitch:	vswitch,
 	}
-	err = client.UpdateGuestNIC(userid, "1000", &updateNICParams)
+	err = client.UpdateGuestNIC(userid, adapterAddress, &updateNICParams)
 	if err != nil {
 		return diag.Errorf("NIC Coupling Error: %s", err)
 	}
@@ -279,6 +287,8 @@ func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	if err != nil {
 		return diag.Errorf("VSwitch Setting Error: %s", err)
 	}
+
+	// TODO: read adapter virtual device address
 
 	// Read MAC address
 	declaredMAC := d.Get("mac").(string)
@@ -408,6 +418,8 @@ func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 		d.Set("image", oldImage)
 		return diag.Errorf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage)
 	}
+
+	// TODO: address adapter VDev changes
 
 	// Address desired MAC changes
 	if d.HasChange("mac") {
