@@ -8,7 +8,7 @@ The code for terraform 0.13.4 (protocol version 5) is in `terraform-protocol-5` 
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0.10
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0.10 or [OpenTofu](https://opentofu.org/docs/intro/install/)
 - [Go](https://golang.org/doc/install) >= 1.21
 
 
@@ -24,23 +24,39 @@ go install
 
 The provider will be installed into `$GOPATH/bin`.
 
-The Feilong provider is in HashiCorp's registry. To bypass the registry, you can do one of these:
+The Feilong provider is in HashiCorp's or Opentofu's registry. To bypass the registries, you can do one of these:
 
 Create a system-wide symbolic link:
 
 ```bash
+# -- Terraform --
 # mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
+# -- Opentofu --
+# mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# ln -s <GOPATH>/bin/terraform-provider-feilong
 ```
 
-Or define this override in the `.terraformrc` file in your home directory:
+Or define this override in the `.terraformrc` or `.tofurc` file in your home directory:
 
 ```terraform
 provider_installation {
 
   dev_overrides {
       "registry.terraform.io/bischoff/feilong" = "<GOPATH>/bin/"
+  }
+
+  direct {}
+}
+```
+
+```terraform
+provider_installation {
+
+  dev_overrides {
+    "registry.opentofu.org/bischoff/feilong" = "<GOPATH>/bin/"
   }
 
   direct {}
@@ -84,13 +100,20 @@ resource "feilong_guest" "opensuse" {
 }
 ```
 
-Then use Terraform commands:
+Then use Terraform or OpenTofu commands:
 
 ```bash
 $ terraform init
 $ terraform apply
 (use the VMs)
 $ terraform destroy
+```
+
+```bash
+$ tofu init
+$ tofu apply
+(use the VMs)
+$ tofu destroy
 ```
 
 For more details, refer to the [documentation](docs/README.md).
