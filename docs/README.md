@@ -10,12 +10,18 @@ Terraform relies on `main.tf` files for deploying VMs. The Feilong provider exte
 
 A normal cycle of commands to use the `main.tf` file is:
 ```bash
+$ tofu init
+$ tofu apply
+(use the VMS)
+$ tofu destroy
+```
+or
+```bash
 $ terraform init
 $ terraform apply
 (use the VMS)
 $ terraform destroy
 ```
-
 
 ### Global Structure of the Configuration File
 

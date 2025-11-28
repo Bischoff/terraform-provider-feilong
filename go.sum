@@ -1,6 +1,6 @@
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
-github.com/Bischoff/feilong-client-go v0.1.1 h1:KlebceI3fiXaGONneHF9Rvknq+AOR6y6AbErc6dR+0s=
+github.com/Bischoff/feilong-client-go v0.1.1 h1:KDWlU1sJk1WHLTx53K1V6ehqmjBR9sM6ji09n14B4zc=
 github.com/Bischoff/feilong-client-go v0.1.1/go.mod h1:znBKIj/2PtEEyqRBWdTAtTtJKPjt3a+3He+UY9OBEoo=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=

@@ -1,4 +1,4 @@
-## 0.1.1 - Unreleased
+## 0.1.1 - 2024-02-18
 
 BUGS:
  * fix guest stats structure name

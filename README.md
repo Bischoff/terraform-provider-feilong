@@ -8,7 +8,7 @@ The code for terraform 0.13.4 (protocol version 5) is in `terraform-protocol-5` 
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0.10 or [OpenTofu](https://opentofu.org/docs/intro/install/)
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0.10 or [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6.0
 - [Go](https://golang.org/doc/install) >= 1.21
 
 
@@ -24,7 +24,7 @@ go install
 
 The provider will be installed into `$GOPATH/bin`.
 
-The Feilong provider is in HashiCorp's or Opentofu's registry. To bypass the registries, you can do one of these:
+The Feilong provider is in HashiCorp's or OpenTofu's registry. To bypass the registries, you can do one of these:
 
 Create a system-wide symbolic link:
 
@@ -33,7 +33,7 @@ Create a system-wide symbolic link:
 # mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
-# -- Opentofu --
+# -- OpenTofu --
 # mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
