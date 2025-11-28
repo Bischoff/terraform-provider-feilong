@@ -3,6 +3,8 @@
 FEATURES:
  * Read() for custom switch
  * Update() for custom switch
+ * new `adapter_address` parameter for guest
+ * building and usage instructions for OpenTofu
 
 
 ## 0.0.6 - 2024-02-18

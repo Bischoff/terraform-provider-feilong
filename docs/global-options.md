@@ -4,7 +4,10 @@ Here is an example of global parameters:
 
 ```terraform
 terraform {
-  required_version = ">= 0.13.4"
+  // for OpenTofu:
+  required_version >= "1.6.0"
+  // or, for Terraform:
+  // required_version = ">= 0.13.4"
   required_providers {
     feilong = {
       source = "bischoff/feilong"
@@ -20,18 +23,25 @@ provider "feilong" {
 }
 ```
 
+
 ### Terraform Section
 
 The `terraform` section is mandatory. The possible variables are:
 
- * `required_version`: the version of Terraform itself.
- * `require_providers`: a map of all providers to use in this deployment. For each of them, the `source` (from the terraform registry) and the `version` are needed.
+ * `required_version`: the version of Terraform or OpenTofu itself.
+ * `require_providers`: a map of all providers to use in this deployment. For each of them, the `source` (from the Terraform or the OpenTofu registry) and the `version` are needed.
 
-You can bypass the terraform registry by compiling the Terraform provider yourself, and by creating the a symbolic link like this:
+You can bypass the Terraform or OpenTofu registry by compiling the Terraform provider yourself, and by creating the a symbolic link like this:
 
 ```bash
+# -- Terraform --
+# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # ln -s /home/someuser/bin/terraform-provider-feilong
+# -- OpenTofu --
+# mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# ln -s <GOPATH>/bin/terraform-provider-feilong
 ```
 
 

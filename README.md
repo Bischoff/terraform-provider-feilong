@@ -8,7 +8,7 @@ The code for terraform 1.0.10 (protocol version 6) is in `main` branch.
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 0.13.4
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 0.13.4 or [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6.0
 - [Go](https://golang.org/doc/install) >= 1.21
 
 
@@ -24,13 +24,32 @@ go install
 
 The provider will be installed into `$GOPATH/bin`.
 
-The Feilong provider is in HashiCorp's registry. To bypass the registry, you can
-create a system-wide symbolic link:
+The Feilong provider is in HashiCorp's or Opentofu's registry. To bypass the registries, you can do one of these:
+
+Create a system-wide symbolic link:
 
 ```bash
+# -- Terraform --
 # mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
+# -- OpenTofu --
+# mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# ln -s <GOPATH>/bin/terraform-provider-feilong
+```
+
+Or define this override in the `.terraformrc` or `.tofurc` file in your home directory:
+
+```terraform
+provider_installation {
+
+  dev_overrides {
+    "registry.opentofu.org/bischoff/feilong" = "<GOPATH>/bin/"
+  }
+
+  direct {}
+}
 ```
 
 Replace `<GOPATH>` with the value of your `$GOPATH` environment variable.
@@ -70,13 +89,20 @@ resource "feilong_guest" "opensuse" {
 }
 ```
 
-Then use Terraform commands:
+Then use Terraform or OpenTofu commands:
 
 ```bash
 $ terraform init
 $ terraform apply
 (use the VMs)
 $ terraform destroy
+```
+
+```bash
+$ tofu init
+$ tofu apply
+(use the VMs)
+$ tofu destroy
 ```
 
 For more details, refer to the [documentation](docs/README.md).
