@@ -1,4 +1,4 @@
-# github.com/Bischoff/feilong-client-go v0.1.1
+# github.com/Bischoff/feilong-client-go v0.1.4
 ## explicit; go 1.21
 github.com/Bischoff/feilong-client-go
 # github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95

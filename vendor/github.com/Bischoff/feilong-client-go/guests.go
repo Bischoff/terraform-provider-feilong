@@ -95,6 +95,48 @@ func (c *Client) CreateGuest(params *CreateGuestParams) (*CreateGuestResult, err
 }
 
 
+// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-minidisks-info
+
+type GetGuestMinidisksInfoMinidisk struct {
+	VDev		string		`json:"vdev"`
+	RDev		string		`json:"rdev"`
+	AccessType	string		`json:"access_type"`
+	DeviceType	string		`json:"device_type"`
+	DeviceSize	int		`json:"device_size"`
+	DeviceUnits	string		`json:"device_units"`
+	VolumeLabel	string		`json:"volume_label"`
+}
+
+type GetGuestMinidisksInfoOutput struct {
+	Minidisks	[]GetGuestMinidisksInfoMinidisk `json:"minidisks,omitempty"`
+}
+
+type GetGuestMinidisksInfoResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		GetGuestMinidisksInfoOutput `json:"output"`
+}
+
+func (c *Client) GetGuestMinidisksInfo(userid string) (*GetGuestMinidisksInfoResult, error) {
+	var result GetGuestMinidisksInfoResult
+
+	body, err := c.doRequest("GET", "/guests/" + userid + "/disks", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-add-disks
 
 type AddGuestDisksParams struct {
@@ -189,6 +231,7 @@ type AttachGuestVolumeParams struct {
 	Multipath	bool		`json:"multipath"`
 	MountPoint	string		`json:"mount_point,omitempty"`
 	IsRootVolume	bool		`json:"is_root_volume,omitempty"`
+	DoRollback	bool		`json:"do_rollback,omitempty"`
 }
 
 func (c *Client) AttachGuestVolume(params *AttachGuestVolumeParams) error {
@@ -217,6 +260,8 @@ type DetachGuestVolumeParams struct {
 	Multipath	bool		`json:"multipath"`
 	MountPoint	string		`json:"mount_point,omitempty"`
 	IsRootVolume	bool		`json:"is_root_volume,omitempty"`
+	UpdateConnectionsOnly bool	`json:"update_connections_only,omitempty"`
+	DoRollback	bool		`json:"do_rollback,omitempty"`
 }
 
 func (c *Client) DetachGuestVolume(params *DetachGuestVolumeParams) error {
@@ -227,7 +272,7 @@ func (c *Client) DetachGuestVolume(params *DetachGuestVolumeParams) error {
 		return err
 	}
 
-	_, err = c.doRequest("POST", "/guests/volumes", body)
+	_, err = c.doRequest("DELETE", "/guests/volumes", body)
 
 	return err
 }
@@ -464,6 +509,67 @@ func (c *Client) GetGuestInfo(userid string) (*GetGuestInfoResult, error) {
 	var result GetGuestInfoResult
 
 	body, err := c.doRequest("GET", "/guests/" + userid + "/info", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+
+// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-os-info
+
+type GetGuestOSInfoOutput struct {
+	OSDistro	string		`json:"os_distro"`
+	KernelInfo	string		`json:"kernel_info"`
+}
+
+type GetGuestOSInfoResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		GetGuestOSInfoOutput `json:"output"`
+}
+
+func (c *Client)  GetGuestOSInfo(userid string) (*GetGuestOSInfoResult, error) {
+	var result GetGuestOSInfoResult
+
+	body, err := c.doRequest("GET", "/guests/" + userid + "/os_info", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+
+// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-online-cpu-num
+
+type GetGuestOnlineCPUNumResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		int		`json:"output"`
+}
+
+func (c *Client) GetGuestOnlineCPUNum(userid string) (*GetGuestOnlineCPUNumResult, error) {
+	var result GetGuestOnlineCPUNumResult
+
+	body, err := c.doRequest("GET", "/guests/" + userid + "/online_cpu_num", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -991,48 +1097,6 @@ func (c *Client) DeleteGuestNIC(userid string, vdev string, params *DeleteGuestN
 	_, err = c.doRequest("DELETE", "/guests/" + userid + "/nic/" + vdev, body)
 
 	return err
-}
-
-
-// New method, see https://github.com/openmainframeproject/feilong/issues/796
-
-type GetGuestMinidisksInfoMinidisk struct {
-	VDev		string		`json:"vdev"`
-	RDev		string		`json:"rdev"`
-	AccessType	string		`json:"access_type"`
-	DeviceType	string		`json:"device_type"`
-	DeviceSize	int		`json:"device_size"`
-	DeviceUnits	string		`json:"device_units"`
-	VolumeLabel	string		`json:"volume_label"`
-}
-
-type GetGuestMinidisksInfoOutput struct {
-	Minidisks	[]GetGuestMinidisksInfoMinidisk `json:"minidisks,omitempty"`
-}
-
-type GetGuestMinidisksInfoResult struct {
-	OverallRC	int		`json:"overallRC"`
-	ReturnCode	int		`json:"rc"`
-	Reason		int		`json:"rs"`
-	ErrorMsg	string		`json:"errmsg"`
-	ModuleId	int		`json:"modID"`
-	Output		GetGuestMinidisksInfoOutput `json:"output"`
-}
-
-func (c *Client) GetGuestMinidisksInfo(userid string) (*GetGuestMinidisksInfoResult, error) {
-	var result GetGuestMinidisksInfoResult
-
-	body, err := c.doRequest("GET", "/guests/" + userid + "/disks", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
 }
 
 

@@ -218,6 +218,51 @@ func (c *Client) DeleteVSwitch(name string) error {
 }
 
 
+// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-vswitch-info
+
+type GetVSwitchInfoParams struct {
+	PortId		string		`json:"portid"`
+}
+
+type GetVSwitchInfo struct {
+	UserId		string		`json:"userid"`
+	Interface	string		`json:"interface"`
+	Switch		string		`json:"switch"`
+	Port		string		`json:"port"`
+	Comments	string		`json:"comments"`
+}
+
+type GetVSwitchInfoResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		[]GetVSwitchInfo `json:"output"`
+}
+
+func (c *Client) GetVSwitchInfo(params *GetVSwitchInfoParams) (*GetVSwitchInfoResult, error) {
+	var result GetVSwitchInfoResult
+
+	body, err := json.Marshal(&params)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err = c.doRequest("GET", "/vswitch", body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+
 // For internal use
 
 type createVSwitchWrapper struct {

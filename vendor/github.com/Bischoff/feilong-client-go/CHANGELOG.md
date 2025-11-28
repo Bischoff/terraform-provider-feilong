@@ -1,3 +1,29 @@
+## 0.1.4 - Unreleased
+
+FEATURES:
+ * add GetGuestOSInfo() and GetGuestOnlineCPUNum()
+
+
+## 0.1.3 - 2025-11-28
+
+BUGS:
+ * fix AttachGuestVolume() and DetachGestVolume()
+
+FEATURES:
+ * add method to get vswitch info
+ * add snippets to stop, start and reboot guest
+ * support FCP templates functions
+
+
+## 0.1.2 - 2024-07-16
+
+BUGS:
+ * rename a misnamed snippet
+
+FEATURES:
+ * support new function to query SMAPI
+
+
 ## 0.1.1 - 2024-02-18
 
 BUGS:
