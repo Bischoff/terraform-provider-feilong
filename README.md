@@ -30,12 +30,12 @@ Create a system-wide symbolic link:
 
 ```bash
 # -- Terraform --
-# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
-# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.7/linux_amd64/
+# mkdir -p /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.8/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.terraform.io/bischoff/feilong/0.0.8/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
 # -- OpenTofu --
-# mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
-# cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.7/linux_amd64/
+# mkdir -p /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.8/linux_amd64/
+# cd /usr/share/terraform/plugins/registry.opentofu.org/bischoff/feilong/0.0.8/linux_amd64/
 # ln -s <GOPATH>/bin/terraform-provider-feilong
 ```
 
@@ -65,7 +65,7 @@ terraform {
   required_providers {
     feilong = {
       source = "bischoff/feilong"
-      version = "0.0.7"
+      version = "0.0.8"
     }
   }
 }

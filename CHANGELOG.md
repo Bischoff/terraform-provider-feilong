@@ -1,4 +1,10 @@
-## 0.0.7 - Unreleased
+## 0.0.8 - 2025-11-29
+
+BUG:
+ * updated base library to version 0.1.4
+
+
+## 0.0.7 - 2025-11-28
 
 FEATURES:
  * Read() for custom switch
