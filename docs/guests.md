@@ -10,6 +10,7 @@ resource "feilong_guest" "opensuse" {
   memory     = "2G"
   disk       = "20G"
   image      = "opensuse155"
+  os_version = "sles15.5"
 
   // optional parameters:
   userid           = "LINUX097"
@@ -30,6 +31,7 @@ The `feilong_guest` resource sections are optional. They may be used to define t
  * `memory` (mandatory): desired memory size, as an integer number followed by B, K, M, or G.
  * `disk` (mandatory): desired disk size, as an integer number followed by B, K, M, or G.
  * `image` (mandatory): the imaged used to create the guest. This image has to be prepared as explained in Feilong documentation.
+ * `os_version` (mandatory): the Operating System flavour used to configure the network interfaces, for example `sles15.7` will prepare files for Wicked.
  * `userid` (optional): the desired name of the guest on the z/VM side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `vcpus` (optional): the desired number of virtual CPUs on the guest. If omitted, it will be set to `1`.
  * `adapter_address` (optional): the desired virtual device address of the first network interface of the guest, as 4 hexadecimal digits. If omitted, it will be set to `1000`.

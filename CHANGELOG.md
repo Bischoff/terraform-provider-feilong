@@ -1,6 +1,12 @@
+## 0.0.9 - (unreleased)
+
+BUGS:
+ * configure first network interface at OS level
+
+
 ## 0.0.8 - 2025-11-29
 
-BUG:
+BUGS:
  * updated base library to version 0.1.4
 
 

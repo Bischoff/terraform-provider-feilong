@@ -25,7 +25,7 @@ type CreateVSwitchParams struct {
 	GVRP		string		`json:"gvrp,omitempty"`
 	QueueMem	int		`json:"queue_mem,omitempty"`
 	NativeVLANId	int		`json:"native_vid,omitempty"`
-	Persist		bool		`json:"persist,omitempty"`
+	Persist		*bool		`json:"persist,omitempty"`
 }
 
 func (c *Client) CreateVSwitch(params *CreateVSwitchParams) error {

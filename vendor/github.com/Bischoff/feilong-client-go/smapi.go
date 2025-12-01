@@ -18,7 +18,7 @@ type SMAPIHealthOutput struct {
 	LastSuccess	string		`json:"lastSuccess"`
 	LastFail	string		`json:"lastFail"`
 	ContinuousFail	int		`json:"continuousFail"`
-	Healthy		bool		`json:"healthy"`
+	Healthy		*bool		`json:"healthy"`
 }
 
 // Deprecated call

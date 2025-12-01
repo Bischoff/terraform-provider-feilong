@@ -51,8 +51,9 @@ type FeilongGuestModel struct {
 	Memory		types.String	`tfsdk:"memory"`
 	Disk		types.String	`tfsdk:"disk"`
 	Image		types.String	`tfsdk:"image"`
+	OSVersion	types.String	`tfsdk:"os_version"`
 	MAC		types.String	`tfsdk:"mac"`
-	AdapterAddress  types.String    `tfsdk:"adapter_address"`
+	AdapterAddress	types.String	`tfsdk:"adapter_address"`
 	VSwitch		types.String	`tfsdk:"vswitch"`
 	CloudinitParams	types.String	`tfsdk:"cloudinit_params"`
 	MACAddress	types.String	`tfsdk:"mac_address"`
@@ -98,6 +99,10 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 			},
 			"image": schema.StringAttribute {
 				MarkdownDescription:	"Image name",
+				Required:		true,
+			},
+			"os_version": schema.StringAttribute {
+				MarkdownDescription:	"Operating system version, e.g. sles15.7",
 				Required:		true,
 			},
 			"adapter_address": schema.StringAttribute {
@@ -173,6 +178,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	image := data.Image.ValueString()
+	osVersion := data.OSVersion.ValueString()
 	adapterAddress := data.AdapterAddress.ValueString()
 	mac := data.MAC.ValueString()
 	vswitch := data.VSwitch.ValueString()
@@ -200,17 +206,23 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Create the first network interface
-	createNICParams := feilong.CreateGuestNICParams {
-		VDev:           adapterAddress,
+	guestNetwork := feilong.GuestNetwork {
+		Method:		"dhcp",
+		// TODO: make it possible to set up other connection parameters: IP address, gateway, DNS, network mask
+		NICVDev:	adapterAddress,
 		MACAddress:	mac,
 	}
-	err = client.CreateGuestNIC(userid, &createNICParams)
+	createGuestNetworkInterfaceParams := feilong.CreateGuestNetworkInterfaceParams {
+		OSVersion:	osVersion,
+		GuestNetworks:	[]feilong.GuestNetwork { guestNetwork },
+	}
+	err = client.CreateGuestNetworkInterface(userid, &createGuestNetworkInterfaceParams)
 	if err != nil {
-		resp.Diagnostics.AddError("NIC Creation Error", fmt.Sprintf("Got error: %s", err))
+		resp.Diagnostics.AddError("Network Interface Configuration Error", fmt.Sprintf("Got error: %s", err))
 		return
 	}
 
-	// Couple the first network interface to the virtual switch
+	// Couple the first network interface with the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
 		Couple:		true,
 		VSwitch:	vswitch,
@@ -481,6 +493,15 @@ func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateReques
 	if newImage != oldImage {
 		// we could reapply a different image, but then all the user data would be lost
 		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage))
+		return
+	}
+
+	// Address OS version changes
+	oldVersion := state.OSVersion.ValueString()
+	newVersion := data.OSVersion.ValueString()
+	if newVersion != oldVersion {
+		// we could reapply with a different OS version, but then all the user data would be lost
+		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change operating system version from \"%s\" to \"%s\"", oldVersion, newVersion))
 		return
 	}
 

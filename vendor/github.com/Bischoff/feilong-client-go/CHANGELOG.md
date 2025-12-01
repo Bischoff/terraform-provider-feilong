@@ -1,4 +1,10 @@
-## 0.1.4 - Unreleased
+## 0.1.5 - Unreleased
+
+FEATURES:
+ * add parameter to CreateGuestNetworkInterface()
+
+
+## 0.1.4 - 2025-11-28
 
 FEATURES:
  * add GetGuestOSInfo() and GetGuestOnlineCPUNum()

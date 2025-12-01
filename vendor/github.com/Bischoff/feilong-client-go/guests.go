@@ -228,10 +228,10 @@ type AttachGuestVolumeParams struct {
 	TargetWWPN	[]string	`json:"target_wwpn"`
 	TargetLUN	string		`json:"target_lun"`
 	OSVersion	string		`json:"os_version"`
-	Multipath	bool		`json:"multipath"`
+	Multipath	*bool		`json:"multipath"`
 	MountPoint	string		`json:"mount_point,omitempty"`
-	IsRootVolume	bool		`json:"is_root_volume,omitempty"`
-	DoRollback	bool		`json:"do_rollback,omitempty"`
+	IsRootVolume	*bool		`json:"is_root_volume,omitempty"`
+	DoRollback	*bool		`json:"do_rollback,omitempty"`
 }
 
 func (c *Client) AttachGuestVolume(params *AttachGuestVolumeParams) error {
@@ -257,11 +257,11 @@ type DetachGuestVolumeParams struct {
 	TargetWWPN	[]string	`json:"target_wwpn"`
 	TargetLUN	string		`json:"target_lun"`
 	OSVersion	string		`json:"os_version"`
-	Multipath	bool		`json:"multipath"`
+	Multipath	*bool		`json:"multipath"`
 	MountPoint	string		`json:"mount_point,omitempty"`
-	IsRootVolume	bool		`json:"is_root_volume,omitempty"`
-	UpdateConnectionsOnly bool	`json:"update_connections_only,omitempty"`
-	DoRollback	bool		`json:"do_rollback,omitempty"`
+	IsRootVolume	*bool		`json:"is_root_volume,omitempty"`
+	UpdateConnectionsOnly *bool	`json:"update_connections_only,omitempty"`
+	DoRollback	*bool		`json:"do_rollback,omitempty"`
 }
 
 func (c *Client) DetachGuestVolume(params *DetachGuestVolumeParams) error {
@@ -662,7 +662,7 @@ type CreateGuestNICParams struct {
 	VDev		string		`json:"vdev,omitempty"`
 	NICId		string		`json:"nic_id,omitempty"`
 	MACAddress	string		`json:"mac_addr,omitempty"`
-	Active		bool		`json:"active,omitempty"`
+	Active		*bool		`json:"active,omitempty"`
 }
 
 func (c *Client) CreateGuestNIC(userid string, params *CreateGuestNICParams) error {
@@ -683,7 +683,7 @@ func (c *Client) CreateGuestNIC(userid string, params *CreateGuestNICParams) err
 type CreateGuestNetworkInterfaceParams struct {
 	OSVersion	string		`json:"os_version"`
 	GuestNetworks	[]GuestNetwork	`json:"guest_networks"`
-	Active		bool		`json:"active,omitempty"`
+	Active		*bool		`json:"active,omitempty"`
 }
 
 func (c *Client) CreateGuestNetworkInterface(userid string, params *CreateGuestNetworkInterfaceParams) error {
@@ -704,7 +704,7 @@ func (c *Client) CreateGuestNetworkInterface(userid string, params *CreateGuestN
 type DeleteGuestNetworkInterfaceParams struct {
 	OSVersion	string		`json:"os_version"`
 	VDev		string		`json:"vdev"`
-	Active		bool		`json:"active,omitempty"`
+	Active		*bool		`json:"active,omitempty"`
 }
 
 func (c *Client) DeleteGuestNetworkInterface(userid string, params *DeleteGuestNetworkInterfaceParams) error {
@@ -972,7 +972,7 @@ type DeployGuestParams struct {
 	RemoteHost	string		`json:"remotehost,omitempty"`
 	VDev		string		`json:"vdev,omitempty"`
 	Hostname	string		`json:"hostname,omitempty"`
-	SkipDiskCopy	bool		`json:"skipdiskcopy,omitempty"`
+	SkipDiskCopy	*bool		`json:"skipdiskcopy,omitempty"`
 }
 
 func (c *Client) DeployGuest(userid string, params *DeployGuestParams) error {
@@ -1064,8 +1064,8 @@ func (c *Client) GetGuestPowerState(userid string) (*GetGuestPowerStateResult, e
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#update-guest-nic
 
 type UpdateGuestNICParams struct {
-	Couple		bool		`json:"couple"`
-	Active		bool		`json:"active,omitempty"`
+	Couple		*bool		`json:"couple"`
+	Active		*bool		`json:"active,omitempty"`
 	VSwitch		string		`json:"vswitch,omitempty"`
 }
 
@@ -1085,7 +1085,7 @@ func (c *Client) UpdateGuestNIC(userid string, vdev string, params *UpdateGuestN
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-guest-nic
 
 type DeleteGuestNICParams struct {
-	Active		bool		`json:"active,omitempty"`
+	Active		*bool		`json:"active,omitempty"`
 }
 
 func (c *Client) DeleteGuestNIC(userid string, vdev string, params *DeleteGuestNICParams) error {

@@ -37,7 +37,7 @@ func (c *Client) RefreshVolumeBootmapInfo(params *RefreshVolumeBootmapInfoParams
 // https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-volume-connector
 
 type GetVolumeConnectorParams struct {
-	Reserve		bool		`json:"reserve"`
+	Reserve		*bool		`json:"reserve"`
 	FCPTemplateId	string		`json:"fcp_template_id,omitempty"`
 	StorageProvider	string		`json:"storage_provider,omitempty"`
 	PCHIdInfo	string		`json:"pchid_info,omitempy"`
@@ -87,7 +87,7 @@ type CreateFCPTemplateParams struct {
 	Name		string		`json:"name"`
 	Description	string		`json:"description,omitempty"`
 	FCPDevices	string		`json:"fcp_devices,omitempty"`
-	HostDefault	bool		`json:"host_default,omitempty"`
+	HostDefault	*bool		`json:"host_default,omitempty"`
 	StorageProviders []string	`json:"storage_providers,omitempty"`
 	MinFCPPathsCount int		`json:"min_fcp_paths_count,omitempty"`
 }
@@ -96,7 +96,7 @@ type CreateFCPTemplate struct {
 	Id		string		`json:"id"`
 	Name		string		`json:"name"`
 	Description	string		`json:"description,omitempty"`
-	HostDefault	bool		`json:"host_default,omitempty"`
+	HostDefault	*bool		`json:"host_default,omitempty"`
 	StorageProviders []string	`json:"storage_providers,omitempty"`
 	MinFCPPathsCount int		`json:"min_fcp_paths_count,omitempty"`
 }
@@ -151,7 +151,7 @@ type GetFCPTemplate struct {
 	Name		string		`json:"name"`
 	Id		string		`json:"id"`
 	Description	string		`json:"description"`
-	HostDefault	bool		`json:"host_default"`
+	HostDefault	*bool		`json:"host_default"`
 	StorageProviderDefault []string	`json:"sp_default"`
 	MinFCPPathsCount int		`json:"min_fcp_paths_count"`
 	CPCSerialNumber	string		`json:"cpc_sn"`
@@ -256,7 +256,7 @@ type GetFCPTemplateDetails struct {
 	Id		string		`json:"id"`
 	Name		string		`json:"name"`
 	Description	string		`json:"description"`
-	HostDefault	bool		`json:"host_default"`
+	HostDefault	*bool		`json:"host_default"`
 	StorageProviders []string	`json:"storage_providers"`
 	MinFCPPathsCount int		`json:"min_fcp_paths_count"`
 	Raw		map[string][][]interface{} `json:"raw,omitempty"`
