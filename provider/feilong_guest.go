@@ -66,6 +66,11 @@ func feilongGuest() *schema.Resource {
 				Type:		schema.TypeString,
 				Required:	true,
 			},
+			"os_version": {
+				Description:	"Operating system version, e.g. sles15.7",
+				Type:		schema.TypeString,
+				Required:	true,
+			},
 			"adapter_address": {
 				Description:	"Desired virtual device of first interface",
 				Type:		schema.TypeString,
@@ -123,6 +128,7 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.Errorf("Conversion Error: %s", err)
 	}
 	image := d.Get("image").(string)
+	osVersion := d.Get("os_version").(string)
 	adapterAddress := d.Get("adapter_address").(string)
 	mac := d.Get("mac").(string)
 	vswitch := d.Get("vswitch").(string)
@@ -149,16 +155,22 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 
 	// Create the first network interface
-	createNICParams := feilong.CreateGuestNICParams {
-		VDev:           adapterAddress,
+	guestNetwork := feilong.GuestNetwork {
+		Method:		"dhcp",
+		// TODO: make it possible to set up other connection parameters: IP address, gateway, DNS, network mask
+		NICVDev:	adapterAddress,
 		MACAddress:	mac,
 	}
-	err = client.CreateGuestNIC(userid, &createNICParams)
+	createGuestNetworkInterfaceParams := feilong.CreateGuestNetworkInterfaceParams {
+		OSVersion:	osVersion,
+		GuestNetworks:	[]feilong.GuestNetwork { guestNetwork },
+	}
+	err = client.CreateGuestNetworkInterface(userid, &createGuestNetworkInterfaceParams)
 	if err != nil {
-		return diag.Errorf("NIC Creation Error: %s", err)
+		return diag.Errorf("Network Interface Configuration Error: %s", err)
 	}
 
-	// Couple the first network interface to the virtual switch
+	// Couple the first network interface with the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
 		Couple:		true,
 		VSwitch:	vswitch,
@@ -417,6 +429,16 @@ func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 		// we could reapply a different image, but then all the user data would be lost
 		d.Set("image", oldImage)
 		return diag.Errorf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage)
+	}
+
+	// Address OS version changes
+	if d.HasChange("os_version") {
+		oldValue, newValue := d.GetChange("os_version")
+		oldVersion := oldValue.(string)
+		newVersion := newValue.(string)
+		// we could reapply with a different OS version, but then all the user data would be lost
+		d.Set("os_version", oldVersion)
+		return diag.Errorf("Cannot change operating system version from \"%s\" to \"%s\"", oldVersion, newVersion)
 	}
 
 	// TODO: address adapter VDev changes
