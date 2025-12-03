@@ -1,5 +1,8 @@
 ## 0.1.5 - Unreleased
 
+BUGS:
+ * booleans did not alsways get marshalled into json
+
 FEATURES:
  * add parameter to CreateGuestNetworkInterface()
 

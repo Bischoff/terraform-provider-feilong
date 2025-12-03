@@ -2,6 +2,7 @@
 
 BUGS:
  * configure first network interface at OS level
+ * booleans did not always get marshalled into json
 
 
 ## 0.0.8 - 2025-11-29

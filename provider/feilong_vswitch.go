@@ -149,6 +149,7 @@ func (guest *FeilongVSwitch) Create(ctx context.Context, req resource.CreateRequ
 
 	// Create the virtual switch
 	client := guest.Client
+	persist := data.Persist.ValueBool()
 	createParams := feilong.CreateVSwitchParams { Name: data.Name.ValueString() }
         if !data.RealDevice.IsNull() {
                 createParams.RealDev = data.RealDevice.ValueString()
@@ -181,7 +182,7 @@ func (guest *FeilongVSwitch) Create(ctx context.Context, req resource.CreateRequ
                 createParams.NativeVLANId = int(data.NativeVLANId.ValueInt64())
         }
         if !data.Persist.IsNull() {
-                createParams.Persist = data.Persist.ValueBool()
+                createParams.Persist = &persist
         }
 
 	err := client.CreateVSwitch(&createParams)

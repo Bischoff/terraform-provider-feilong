@@ -187,10 +187,11 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the guest
 	client := guest.Client
+	isBootDisk := true; couple := true
 	diskList := []feilong.GuestDisk {
 		{
 			Size:		size,
-			IsBootDisk:	true,
+			IsBootDisk:	&isBootDisk,
 		},
 	}
 	createParams := feilong.CreateGuestParams {
@@ -224,7 +225,7 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Couple the first network interface with the virtual switch
 	updateNICParams := feilong.UpdateGuestNICParams {
-		Couple:		true,
+		Couple:		&couple,
 		VSwitch:	vswitch,
 	}
 	err = client.UpdateGuestNIC(userid, adapterAddress, &updateNICParams)
