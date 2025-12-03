@@ -114,6 +114,7 @@ func feilongVSwitchCreate(ctx context.Context, d *schema.ResourceData, meta any)
 	// Create the virtual switch
 	client := meta.(*apiClient).Client
 	createParams := feilong.CreateVSwitchParams { Name: vswitch }
+	persist := d.Get("persist").(bool)
 	if d.Get("real_device") != nil {
 		createParams.RealDev = d.Get("real_device").(string)
 	}
@@ -145,7 +146,7 @@ func feilongVSwitchCreate(ctx context.Context, d *schema.ResourceData, meta any)
 		createParams.NativeVLANId = d.Get("native_vlan_id").(int)
 	}
 	if d.Get("persist") != nil {
-		createParams.Persist = d.Get("persist").(bool)
+		createParams.Persist = &persist
 	}
 
 	err := client.CreateVSwitch(&createParams)
