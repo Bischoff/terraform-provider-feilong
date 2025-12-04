@@ -16,6 +16,11 @@ resource "feilong_guest" "opensuse" {
   userid           = "LINUX097"
   vcpus            = 2
   adapter_address  = "0600"
+  method           = "static"
+  ip               = "10.20.11.5"
+  gateway          = "10.20.255.254"
+  network          = "10.20.0.0/16"
+  dns_servers      = ["10.0.53.53"]
   mac              = "12:34:56:78:9a:bc"
   cloudinit_params = feilong_cloudinit_params.cloudinit.file
   vswitch          = feilong_vswitch.switch.vswitch
@@ -31,13 +36,18 @@ The `feilong_guest` resource sections are optional. They may be used to define t
  * `memory` (mandatory): desired memory size, as an integer number followed by B, K, M, or G.
  * `disk` (mandatory): desired disk size, as an integer number followed by B, K, M, or G.
  * `image` (mandatory): the imaged used to create the guest. This image has to be prepared as explained in Feilong documentation.
- * `os_version` (mandatory): the Operating System flavour used to configure the network interfaces, for example `sles15.7` will prepare files for Wicked.
+ * `os_version` (mandatory): the Operating System flavour used to configure the network interfaces, for example `"sles15.7"` will prepare files for Wicked.
  * `userid` (optional): the desired name of the guest on the z/VM side, maximum 8 characters, all capital letters. If omitted, it will be derived from the `name`.
  * `vcpus` (optional): the desired number of virtual CPUs on the guest. If omitted, it will be set to `1`.
  * `adapter_address` (optional): the desired virtual device address of the first network interface of the guest, as 4 hexadecimal digits. If omitted, it will be set to `1000`.
+ * `method` (optional): the network method used to configure the first network interface, either `"static"` or `"dhcp"`. If omitted, it will be set to `"dhcp"`.
+ * `ip` (optional): : with `classic` method, the IPv4 address of the first network interface.
+ * `dns_servers` (optional):: with `classic` method, a list of IPv4 addresses of the DNS servers associated to the first network interface.
+ * `gateway` (optional):: with `classic` method, the IPv4 address of the gateway for the first network interface.
+ * `network` (optional):: with `classic` method, the network of the first network interface in CIDR notation.
  * `mac` (optional): the desired MAC address of the first network interface of the guest, as 6 hexadecimal digits separed by colons. Only last 3 bytes will be used, the first 3 will be ignored by Feilong. Feilong will set these first 3 bytes arbitrarily.
  * `cloudinit_params` (optional): the path to a local file containing an ISO 9660 image containing cloud-init parameters in the format used by openstack.
- * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `DEVNET`.
+ * `vswitch` (optional): the name of the virtual switch to connect to. If omitted, it will be set to `"DEVNET"`.
 
 You can prepare the cloud-init parameters file yourself, taking your inspiration from the contents of the `profider/files/cfgdrive/` directory in this project. Alternatively, you can use a `feilong_cloudinit_params` section to prepare it automatically. If you do so, use `feilong_cloudinit_params.<CLOUDINIT_RESOURCE_NAME>.file` instead of a hardcoded path.
 In both cases, you must declare the user and hostname of your local machine in `local_user` field of the provider, and accept Feilong's public SSH key.
