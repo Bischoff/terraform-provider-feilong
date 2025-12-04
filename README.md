@@ -122,11 +122,12 @@ For more details, refer to the [documentation](docs/README.md).
 ## To Do
 
 * Write missing CRUD functions:
+  * network configuration Update()
   * vswitch Update()
   * cloudinit Read()
   * cloudinit Update()
 * Support more z/VM resources:
-  * network interface
+  * additional network interfaces
   * minidisk
   * fiber channel
   * other?

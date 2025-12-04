@@ -52,6 +52,11 @@ type FeilongGuestModel struct {
 	Disk		types.String	`tfsdk:"disk"`
 	Image		types.String	`tfsdk:"image"`
 	OSVersion	types.String	`tfsdk:"os_version"`
+	Method		types.String	`tfsdk:"method"`
+	IP		types.String	`tfsdk:"ip"`
+	DNSServers	types.List	`tfsdk:"dns_servers"`
+	Gateway		types.String	`tfsdk:"gateway"`
+	Network		types.String	`tfsdk:"network"`
 	MAC		types.String	`tfsdk:"mac"`
 	AdapterAddress	types.String	`tfsdk:"adapter_address"`
 	VSwitch		types.String	`tfsdk:"vswitch"`
@@ -111,11 +116,33 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 				Computed:		true,
 				Default:		stringdefault.StaticString("1000"),
 			},
+			"method": schema.StringAttribute {
+				MarkdownDescription:	"Network method used to configure first interface",
+				Optional:		true,
+				Computed:		true,
+				Default:		stringdefault.StaticString("dhcp"),
+			},
+			"ip": schema.StringAttribute {
+				MarkdownDescription:	"Desired IPv4 address of first interface",
+				Optional:		true,
+			},
+			"dns_servers": schema.ListAttribute {
+				MarkdownDescription:	"List of DNS servers associated to first interface",
+				ElementType:		types.StringType,
+				Optional:		true,
+			},
+			"gateway": schema.StringAttribute {
+				MarkdownDescription:	"IPv4 address of gateway for first interface",
+				Optional:		true,
+			},
+			"network": schema.StringAttribute {
+				MarkdownDescription:	"Network of first interface in CIDR notation",
+				Optional:		true,
+			},
 			"mac": schema.StringAttribute {
 				MarkdownDescription:	"Desired MAC address of first interface",
 				Optional:		true,
 				Computed:		true,
-				Default:		stringdefault.StaticString(""),
 			},
 			"vswitch": schema.StringAttribute {
 				MarkdownDescription:	"Name of virtual switch to connect to",
@@ -180,6 +207,15 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 	image := data.Image.ValueString()
 	osVersion := data.OSVersion.ValueString()
 	adapterAddress := data.AdapterAddress.ValueString()
+	method := data.Method.ValueString()
+	ip := data.IP.ValueString()
+	dnsServers := []string{}
+	for _, server := range data.DNSServers.Elements() {
+		s, _ := strconv.Unquote(server.String())
+		dnsServers = append(dnsServers, s)
+	}
+	gateway := data.Gateway.ValueString()
+	network := data.Network.ValueString()
 	mac := data.MAC.ValueString()
 	vswitch := data.VSwitch.ValueString()
 	cloudinitParams := data.CloudinitParams.ValueString()
@@ -208,10 +244,14 @@ func (guest *FeilongGuest) Create(ctx context.Context, req resource.CreateReques
 
 	// Create the first network interface
 	guestNetwork := feilong.GuestNetwork {
-		Method:		"dhcp",
-		// TODO: make it possible to set up other connection parameters: IP address, gateway, DNS, network mask
+		Method:		method,
+		IPAddress:	ip,
+		DNSAddresses:	dnsServers,
+		GatewayAddress:	gateway,
+		CIDR:		network,
 		NICVDev:	adapterAddress,
 		MACAddress:	mac,
+		// NICId, OSADevice, and Hostname unconfigured
 	}
 	createGuestNetworkInterfaceParams := feilong.CreateGuestNetworkInterfaceParams {
 		OSVersion:	osVersion,
@@ -378,6 +418,7 @@ func (guest *FeilongGuest) Read(ctx context.Context, req resource.ReadRequest, r
 	// CAVEATS:
 	//  - the image used during the deployment cannot be determined after the deployment
 	//  - the cloud init image used during the deployment cannot be determined after the deployment
+	//  - the network method, IP address, DNS servers, gateway and network used during the deployment cannot be determined after the deployment
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "Read characteristics of Feilong guest resource")
@@ -497,16 +538,12 @@ func (guest *FeilongGuest) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	// Address OS version changes
-	oldVersion := state.OSVersion.ValueString()
-	newVersion := data.OSVersion.ValueString()
-	if newVersion != oldVersion {
-		// we could reapply with a different OS version, but then all the user data would be lost
-		resp.Diagnostics.AddError("Immutable Value", fmt.Sprintf("Cannot change operating system version from \"%s\" to \"%s\"", oldVersion, newVersion))
-		return
-	}
-
-	// TODO: address adapter VDev changes
+	// TODO: address changes to first network interface:
+	//       * adapter VDev
+	//       * OS version
+	//       * initialization method
+	//       * IP address
+	//       * etc.
 
 	// Address desired MAC changes
 	oldMac := state.MAC.ValueString()
