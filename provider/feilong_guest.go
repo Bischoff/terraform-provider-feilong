@@ -77,11 +77,37 @@ func feilongGuest() *schema.Resource {
 				Optional:	true,
 				Default:	"1000",
 			},
+			"method": {
+				Description:	"Network method used to configure first interface",
+				Type:		schema.TypeString,
+				Optional:	true,
+				Default:	"dhcp",
+			},
+			"ip": {
+				Description:	"Desired IPv4 address of first interface",
+				Type:		schema.TypeString,
+				Optional:	true,
+			},
+			"dns_servers": {
+				Description:	"List of DNS servers associated to first interface",
+				Type:		schema.TypeList,
+				Elem:		&schema.Schema { Type: schema.TypeString, },
+				Optional:	true,
+			},
+			"gateway": {
+				Description:	"IPv4 address of gateway for first interface",
+				Type:		schema.TypeString,
+				Optional:	true,
+			},
+			"network": {
+				Description:	"Network of first interface in CIDR notation",
+				Type:		schema.TypeString,
+				Optional:	true,
+			},
 			"mac": {
 				Description:	"Desired MAC address of first interface",
 				Type:		schema.TypeString,
 				Optional:	true,
-				Default:	"",
 			},
 			"vswitch": {
 				Description:	"Name of virtual switch to connect to",
@@ -130,6 +156,14 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	image := d.Get("image").(string)
 	osVersion := d.Get("os_version").(string)
 	adapterAddress := d.Get("adapter_address").(string)
+	method := d.Get("method").(string)
+	ip := d.Get("ip").(string)
+	dnsServers := []string{}
+	for _, server := range d.Get("dns_servers").([]interface{}) {
+		dnsServers = append(dnsServers, server.(string))
+	}
+	gateway := d.Get("gateway").(string)
+	network := d.Get("network").(string)
 	mac := d.Get("mac").(string)
 	vswitch := d.Get("vswitch").(string)
 	cloudinitParams := d.Get("cloudinit_params").(string)
@@ -157,10 +191,14 @@ func feilongGuestCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	// Create the first network interface
 	guestNetwork := feilong.GuestNetwork {
-		Method:		"dhcp",
-		// TODO: make it possible to set up other connection parameters: IP address, gateway, DNS, network mask
+		Method:		method,
+		IPAddress:	ip,
+		DNSAddresses:	dnsServers,
+		GatewayAddress:	gateway,
+		CIDR:		network,
 		NICVDev:	adapterAddress,
 		MACAddress:	mac,
+		// NICId, OSADevice, and Hostname unconfigured
 	}
 	createGuestNetworkInterfaceParams := feilong.CreateGuestNetworkInterfaceParams {
 		OSVersion:	osVersion,
@@ -333,6 +371,7 @@ func feilongGuestRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	// CAVEATS:
 	//  - the image used during the deployment cannot be determined after the deployment
 	//  - the cloud init image used during the deployment cannot be determined after the deployment
+	//  - the network method, IP address, DNS servers, gateway and network used during the deployment cannot be determined after the deployment
 
 	return nil
 }
@@ -433,17 +472,12 @@ func feilongGuestUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.Errorf("Cannot change image used to install the system from \"%s\" to \"%s\"", oldImage, newImage)
 	}
 
-	// Address OS version changes
-	if d.HasChange("os_version") {
-		oldValue, newValue := d.GetChange("os_version")
-		oldVersion := oldValue.(string)
-		newVersion := newValue.(string)
-		// we could reapply with a different OS version, but then all the user data would be lost
-		d.Set("os_version", oldVersion)
-		return diag.Errorf("Cannot change operating system version from \"%s\" to \"%s\"", oldVersion, newVersion)
-	}
-
-	// TODO: address adapter VDev changes
+	// TODO: address changes to first network interface:
+	//       * adapter VDev
+	//	 * OS version
+	//	 * initialization method
+	//       * IP address
+	//       * etc.
 
 	// Address desired MAC changes
 	if d.HasChange("mac") {
