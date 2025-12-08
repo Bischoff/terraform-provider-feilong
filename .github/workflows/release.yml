@@ -1,0 +1,52 @@
+# .github/workflows/release.yml
+name: Release Provider
+
+on:
+  push:
+    # ONLY trigger the workflow for tags starting with 'release/'
+    # This ensures tags like 'v1.0.0' or '1.0.0' are ignored unless
+    # explicitly named 'release/v1.0.0'.
+    tags:
+      - 'release/v*'
+
+permissions:
+  # Required to create the GitHub Release and upload artifacts
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # REQUIRED: GoReleaser needs the full git history for tags/commits
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22 # Use your desired Go version
+
+      # NOTE: For Terraform Providers, HashiCorp REQUIRES GPG signing.
+      # You need to uncomment and set up the following steps.
+      #
+      # - name: Import GPG key
+      #   uses: crazy-max/ghaction-import-gpg@v6
+      #   id: import_gpg
+      #   with:
+      #     gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # Prefer an explicit version instead of "version: latest"
+          # (which is currently 2.13.1)
+          version: v1.24.0
+          # Runs the full release cycle (build, archive, release)
+          args: release --clean
+        env:
+          # GITHUB_TOKEN is required for GoReleaser to create the release
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }} # Uncomment if using GPG
