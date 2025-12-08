@@ -1,0 +1,73 @@
+# .goreleaser.yml
+
+# Use the latest version of the configuration format
+version: 2
+
+# Project name template
+project_name: terraform-provider-feilong
+
+# ----------------------------------------------------------------
+# 1. Build Section (Defines which binaries to create)
+# ----------------------------------------------------------------
+builds:
+  - id: provider
+    # Set the name of the final executable binary.
+    binary: '{{ .ProjectName }}'
+    # Use CGO_ENABLED=0 for static binaries
+    env:
+      - CGO_ENABLED=0
+    # List the target operating systems (GOOS) and architectures (GOARCH)
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    # The main package path. Usually '.' for the current directory,
+    # or './cmd/provider' if your main package is elsewhere.
+    main: './'
+
+# ----------------------------------------------------------------
+# 2. Archive Section (Defines the tar.gz and zip files)
+# ----------------------------------------------------------------
+archives:
+  - id: tgz-archives
+    # Include all builds defined above
+    builds:
+      - provider
+    # Use tar.gz for Linux/macOS and zip for Windows, as is standard
+    formats:
+      - tar.gz
+      - zip
+    # This template creates the files you need:
+    # e.g., terraform-provider-feilong_0.0.9_linux_amd64.tar.gz
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    # Strip the binary's version from the archive file structure
+    # strip_parent_dir: true - not in this version of go releaser
+    # Include only the executable and the LICENSE file in the archive
+    files:
+      - LICENSE
+
+# ----------------------------------------------------------------
+# 3. Checksum Section (Ensures file integrity)
+# ----------------------------------------------------------------
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
+  algorithm: sha256
+
+# ----------------------------------------------------------------
+# 4. Snapshot Section (For local development testing)
+# ----------------------------------------------------------------
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+# ----------------------------------------------------------------
+# 5. Release Section (Publishes to GitHub Releases)
+# ----------------------------------------------------------------
+release:
+  # Automatically create a draft release if one doesn't exist for the tag
+  draft: true
+  # Add the generated SHA256 sums file to the release
+  extra_files:
+    - glob: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
