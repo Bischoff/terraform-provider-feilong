@@ -1,6 +1,7 @@
 ## 0.0.10 - (unreleased)
 
 BUGS:
+ * desired MAC is a purely optional parameter
  * 60 seconds timeout is not enough for SLES 16
 
 

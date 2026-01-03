@@ -142,7 +142,6 @@ func (guest *FeilongGuest) Schema(ctx context.Context, req resource.SchemaReques
 			"mac": schema.StringAttribute {
 				MarkdownDescription:	"Desired MAC address of first interface",
 				Optional:		true,
-				Computed:		true,
 			},
 			"vswitch": schema.StringAttribute {
 				MarkdownDescription:	"Name of virtual switch to connect to",
