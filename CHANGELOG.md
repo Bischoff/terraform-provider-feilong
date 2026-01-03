@@ -1,4 +1,10 @@
-## 0.0.9 - (unreleased)
+## 0.0.10 - (unreleased)
+
+BUGS:
+ * 60 seconds timeout is not enough for SLES 16
+
+
+## 0.0.9 - 2025-12-08
 
 BUGS:
  * configure first network interface at OS level
