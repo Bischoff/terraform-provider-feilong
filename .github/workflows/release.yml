@@ -9,7 +9,8 @@ on:
     tags:
       # (not in this version of the releaser)
       # - 'release/v*'
-      - 'v*'
+      # do not release yet
+      # - 'v*'
 
 permissions:
   # Required to create the GitHub Release and upload artifacts

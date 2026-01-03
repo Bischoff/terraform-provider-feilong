@@ -1,4 +1,4 @@
-## 0.1.5 - Unreleased
+## 0.1.5 - 2025-12-05
 
 BUGS:
  * booleans did not alsways get marshalled into json

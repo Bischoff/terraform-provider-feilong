@@ -45,7 +45,7 @@ archives:
       - tar.gz
       - zip
     # This template creates the files you need:
-    # e.g., terraform-provider-feilong_0.0.9_linux_amd64.tar.gz
+    # e.g., terraform-provider-feilong_0.0.10_linux_amd64.tar.gz
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
     # Strip the binary's version from the archive file structure
     # (not in this version of go releaser)
