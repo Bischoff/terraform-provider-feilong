@@ -669,7 +669,7 @@ func waitForLease(ctx context.Context, client *feilong.Client, userid string, ma
 		Pending:	[]string { waitingMsg },
 		Target:		[]string { obtainedMsg },
 		Refresh:	waitFunction,
-		Timeout:	1 * time.Minute,
+		Timeout:	90 * time.Second,
 		MinTimeout:	3 * time.Second,
 		Delay:		5 * time.Second,
 	}
