@@ -2,6 +2,7 @@
 
 BUGS:
  * 60 seconds timeout is not enough for SLES 16
+ * Feilong documentation has moved
 
 
 ## 0.0.9 - 2025-12-08
