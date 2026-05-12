@@ -11,7 +11,7 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-vswitch
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-vswitch
 
 type CreateVSwitchParams struct {
 	Name		string		`json:"name"`
@@ -40,7 +40,7 @@ func (c *Client) CreateVSwitch(params *CreateVSwitchParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#list-vswitches
+// https://feilong.readthedocs.io/en/latest/restapi.html#list-vswitches
 
 type ListVSwitchesResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -68,7 +68,7 @@ func (c *Client) ListVSwitches() (*ListVSwitchesResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-vswitch-details
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-vswitch-details
 
 type VSwitchRealDevice struct {
 	VDev		string		`json:"vdev"`
@@ -144,7 +144,7 @@ func (c *Client) GetVSwitchDetails(name string) (*GetVSwitchDetailsResult, error
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#grant-user-to-vswitch
+// https://feilong.readthedocs.io/en/latest/restapi.html#grant-user-to-vswitch
 
 type GrantUserToVSwitchParams struct {
 	GrantUserId	string		`json:"grant_userid"`
@@ -164,7 +164,7 @@ func (c *Client) GrantUserToVSwitch(name string, params *GrantUserToVSwitchParam
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#revoke-user-from-vswitch
+// https://feilong.readthedocs.io/en/latest/restapi.html#revoke-user-from-vswitch
 
 type RevokeUserFromVSwitchParams struct {
 	RevokeUserId	string		`json:"revoke_userid"`
@@ -184,7 +184,7 @@ func (c *Client) RevokeUserFromVSwitch(name string, params *RevokeUserFromVSwitc
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#set-user-vlanid-to-vswitch
+// https://feilong.readthedocs.io/en/latest/restapi.html#set-user-vlanid-to-vswitch
 
 type UserVLANId struct {
 	UserId		string		`json:"userid"`
@@ -209,7 +209,7 @@ func (c *Client) SetUserVLANIdToVSwitch(name string, params *SetUserVLANIdToVSwi
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-vswitch
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-vswitch
 
 func (c *Client) DeleteVSwitch(name string) error {
 	_, err := c.doRequest("DELETE", "/vswitches/" + name, nil)
@@ -218,7 +218,7 @@ func (c *Client) DeleteVSwitch(name string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-vswitch-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-vswitch-info
 
 type GetVSwitchInfoParams struct {
 	PortId		string		`json:"portid"`

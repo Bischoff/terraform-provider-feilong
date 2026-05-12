@@ -11,12 +11,12 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#list-images
+// https://feilong.readthedocs.io/en/latest/restapi.html#list-images
 
 type ListImagesImage struct {
 	ImageName		string		`json:"imagename"`
 	ImageOSDistro		string		`json:"imageosdistro"`
-	MD5Sum			string		`json:"md5sum"`
+	Checksum		string		`json:"checksum"`
 	DiskSizeUnits		string		`json:"disk_size_units"`
 	ImageSizeInBytes	string		`json:"image_size_in_bytes"`
 	Type			string		`json:"type"`
@@ -54,11 +54,11 @@ func (c *Client) ListImages(imageName *string) (*ListImagesResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-image
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-image
 
 type CreateImageMeta struct {
 	OSVersion	string		`json:"os_version"`
-	MD5Sum		string		`json:"md5sum,omitempty"`
+	Checksum	string		`json:"checksum,omitempty"`
 	DiskType	string		`json:"disk_type,omitempty"`
 }
 
@@ -83,7 +83,7 @@ func (c *Client) CreateImage(params *CreateImageParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#export-image
+// https://feilong.readthedocs.io/en/latest/restapi.html#export-image
 
 type ExportImageParams struct {
 	DestURL		string		`json:"dest_url"`
@@ -94,7 +94,7 @@ type ExportImageOutput struct {
 	ImageName	string		`json:"image_name"`
 	ImagePath	string		`json:"image_path"`
 	OSVersion	string		`json:"os_version"`
-	MD5Sum		string		`json:"md5sum"`
+	Checksum	string		`json:"checksum"`
 }
 
 type ExportImageResult struct {
@@ -129,7 +129,7 @@ func (c *Client) ExportImage(name string, params *ExportImageParams) (*ExportIma
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-root-disk-size-of-image
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-root-disk-size-of-image
 
 type GetImageRootDiskSizeResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -157,7 +157,7 @@ func (c *Client) GetImageRootDiskSize(name string) (*GetImageRootDiskSizeResult,
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-image
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-image
 
 func (c *Client) DeleteImage(name string) error {
 	_, err := c.doRequest("DELETE", "/images/" + name, nil)

@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 )
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-feilong-version
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-feilong-version
 
 type GetFeilongVersionOutput struct {
 	Version		string		`json:"version"`

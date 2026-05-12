@@ -10,12 +10,12 @@ import (
 	"encoding/json"
 )
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#import-file
+// https://feilong.readthedocs.io/en/latest/restapi.html#import-file
 
 type ImportFileOutput struct {
 	DestURL		string		`json:"dest_url"`
 	filesizeInBytes	int		`json:"filesize_in_bytes"`
-	MD5Sum		string		`json:"md5sum"`
+	Checksum	string		`json:"checksum"`
 }
 
 type ImportFileResult struct {
@@ -43,7 +43,7 @@ func (c *Client) ImportFile(file []byte) (*ImportFileResult, error) {
 	return &result, nil
 }
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#export-file
+// https://feilong.readthedocs.io/en/latest/restapi.html#export-file
 
 type ExportFileParams struct {
 	SourceFile	string		`json:"source_file"`

@@ -12,7 +12,7 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#refresh-volume-bootmap-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#refresh-volume-bootmap-info
 
 type RefreshVolumeBootmapInfoParams struct {
 	FCPChannel	[]string	`json:"fcpchannel"`
@@ -34,7 +34,7 @@ func (c *Client) RefreshVolumeBootmapInfo(params *RefreshVolumeBootmapInfoParams
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-volume-connector
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-volume-connector
 
 type GetVolumeConnectorParams struct {
 	Reserve		*bool		`json:"reserve"`
@@ -81,7 +81,7 @@ func (c *Client) GetVolumeConnector(userid string, params *GetVolumeConnectorPar
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-fcp-template
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-fcp-template
 
 type CreateFCPTemplateParams struct {
 	Name		string		`json:"name"`
@@ -136,7 +136,7 @@ func (c *Client) CreateFCPTemplate(params *CreateFCPTemplateParams) (*CreateFCPT
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-fcp-template
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-fcp-template
 
 func (c *Client) DeleteFCPTemplate(templateId string) error {
 	_, err := c.doRequest("DELETE", "/volumes/fcptemplates/" + templateId, nil)
@@ -145,7 +145,7 @@ func (c *Client) DeleteFCPTemplate(templateId string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-fcp-templates
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-fcp-templates
 
 type GetFCPTemplate struct {
 	Name		string		`json:"name"`
@@ -209,7 +209,7 @@ func (c *Client) GetFCPTemplates(templateIdList []string, assignerId *string, de
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#edit-fcp-template
+// https://feilong.readthedocs.io/en/latest/restapi.html#edit-fcp-template
 
 type EditFCPTemplateParams struct {
 	Name		*string		`json:"name,omitempty"`
@@ -232,7 +232,7 @@ func (c *Client) EditFCPTemplate(templateId string, params *EditFCPTemplateParam
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-fcp-templates-details
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-fcp-templates-details
 
 type FCPTemplateStatistics struct {
 	Total		string		`json:"total"`
@@ -318,7 +318,7 @@ func (c *Client) GetFCPTemplatesDetails(templateIdList []string, raw bool, stati
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-fcp-usage
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-fcp-usage
 
 type GetVolumeFCPUsageResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -346,7 +346,7 @@ func (c *Client) GetVolumeFCPUsage(fcpid string) (*GetVolumeFCPUsageResult, erro
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#set-fcp-usage
+// https://feilong.readthedocs.io/en/latest/restapi.html#set-fcp-usage
 
 type SetVolumeFCPUsageParams struct {
 	UserId		string		`json:"userid"`

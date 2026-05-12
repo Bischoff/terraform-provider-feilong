@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 )
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#report-health-of-smapi
+// https://feilong.readthedocs.io/en/latest/restapi.html#report-health-of-smapi
 
 type SMAPIHealthOutput struct {
 	TotalSuccess	int		`json:"totalSuccess"`

@@ -44,7 +44,7 @@ For an overview of all the functions, see the [documentation](docs/README.md).
 
 ## Compliance
 
-The library implements the [Feilong API](https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#) version 1.0. It has been tested to work with Feilong server version 1.6.7.
+The library implements the [Feilong API](https://feilong.readthedocs.io/en/latest/restapi.html#) version 1.0. It has been tested to work with Feilong server version 1.6.7.
 
 
 ## To Do

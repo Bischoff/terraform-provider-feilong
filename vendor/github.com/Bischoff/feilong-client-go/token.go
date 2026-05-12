@@ -10,7 +10,7 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-token
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-token
 
 func (c *Client) CreateToken(adminToken string) error {
 

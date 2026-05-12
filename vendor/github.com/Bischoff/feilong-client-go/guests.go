@@ -11,7 +11,7 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#list-guests
+// https://feilong.readthedocs.io/en/latest/restapi.html#list-guests
 
 type ListGuestsResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -39,7 +39,7 @@ func (c *Client) ListGuests() (*ListGuestsResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-guest
 
 type CreateDiskLoadDev struct {
 	PortName	string		`json:"portname,omitempty"`
@@ -60,7 +60,12 @@ type CreateGuestParams struct {
 	DedicateVDevs	[]string	`json:"dedicate_vdevs,omitempty"`
 	LoadDev		CreateDiskLoadDev `json:"loaddev,omitempty"`
 	Account		string		`json:"account,omitempty"`
-	CommentList	[]string	`json:"comment_list,omitempty"`
+	Comments	[]string	`json:"comments,omitempty"`
+	CSchedule	string		`json:"cschedule,omitempty"`
+	CShare		string		`json:"cshare,omitempty"`
+	RDomain		string		`json:"rdomain,omitempty"`
+	PCIF		string		`json:"pcif,omitempty"`
+	LogonBy		string		`json:"logon_by,omitempty"`
 }
 
 type CreateGuestResult struct {
@@ -95,7 +100,7 @@ func (c *Client) CreateGuest(params *CreateGuestParams) (*CreateGuestResult, err
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-minidisks-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-minidisks-info
 
 type GetGuestMinidisksInfoMinidisk struct {
 	VDev		string		`json:"vdev"`
@@ -137,7 +142,7 @@ func (c *Client) GetGuestMinidisksInfo(userid string) (*GetGuestMinidisksInfoRes
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-add-disks
+// https://feilong.readthedocs.io/en/latest/restapi.html#guest-add-disks
 
 type AddGuestDisksParams struct {
 	DiskList	[]GuestDisk	`json:"disk_list,omitempty"`
@@ -175,7 +180,7 @@ func (c *Client) AddGuestDisks(userid string, params *AddGuestDisksParams) (*Add
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-configure-disks
+// https://feilong.readthedocs.io/en/latest/restapi.html#guest-configure-disks
 
 type ConfigureGuestDisk struct {
 	VDev		string		`json:"vdev,omitempty"`
@@ -200,7 +205,7 @@ func (c *Client) ConfigureGuestDisks(userid string, params *ConfigureGuestDisksP
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-delete-disks
+// https://feilong.readthedocs.io/en/latest/restapi.html#guest-delete-disks
 
 type DeleteGuestDisksParams struct {
 	VDevList	[]string	`json:"vdev_list,omitempty"`
@@ -219,7 +224,7 @@ func (c *Client) DeleteGuestDisks(userid string, params *DeleteGuestDisksParams)
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#attach-volume
+// https://feilong.readthedocs.io/en/latest/restapi.html#attach-volume
 
 type AttachGuestVolumeParams struct {
 	AssignerId	string		`json:"assigner_id"`
@@ -248,7 +253,7 @@ func (c *Client) AttachGuestVolume(params *AttachGuestVolumeParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#detach-volume
+// https://feilong.readthedocs.io/en/latest/restapi.html#detach-volume
 
 type DetachGuestVolumeParams struct {
 	AssignerId	string		`json:"assigner_id"`
@@ -278,7 +283,7 @@ func (c *Client) DetachGuestVolume(params *DetachGuestVolumeParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guests-stats-including-cpu-and-memory
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guests-stats-including-cpu-and-memory
 
 type GetGuestsStatsDetails struct {
 	GuestCPUs	int		`json:"guest_cpus"`
@@ -323,7 +328,7 @@ func (c *Client) GetGuestsStats(userid string) (*GetGuestsStatsResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guests-interface-stats
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guests-interface-stats
 
 type GetGuestsInterfaceStats struct {
 	VSwitch		string		`json:"vswitch_name,omitempty"`
@@ -364,7 +369,7 @@ func (c *Client) GetGuestsInterfaceStats(userid string) (*GetGuestsInterfaceStat
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guests-nic-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guests-nic-info
 
 type GetGuestsNICInfo struct {
 	UserId		string		`json:"userid"`
@@ -414,7 +419,7 @@ func (c *Client) GetGuestsNICInfo(userid *string, nicid *string, vswitch *string
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#show-guest-definition
+// https://feilong.readthedocs.io/en/latest/restapi.html#show-guest-definition
 
 type ShowGuestDefinitionOutput struct {
 	UserDirect	[]string	`json:"user_direct,omitempty"`
@@ -446,7 +451,7 @@ func (c *Client) ShowGuestDefinition(userid string) (*ShowGuestDefinitionResult,
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-guest
 
 func (c *Client) DeleteGuest(userid string) error {
 	_, err := c.doRequest("DELETE", "/guests/" + userid, nil)
@@ -455,7 +460,7 @@ func (c *Client) DeleteGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-power-state-from-hypervisor
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-power-state-from-hypervisor
 
 type GetGuestPowerStateFromHypervisorResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -483,7 +488,7 @@ func (c *Client) GetGuestPowerStateFromHypervisor(userid string) (*GetGuestPower
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-info
 
 type GetGuestInfoOutput struct {
 	MaxMemKB	int		`json:"max_mem_kb"`
@@ -522,7 +527,7 @@ func (c *Client) GetGuestInfo(userid string) (*GetGuestInfoResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-os-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-os-info
 
 type GetGuestOSInfoOutput struct {
 	OSDistro	string		`json:"os_distro"`
@@ -538,7 +543,7 @@ type GetGuestOSInfoResult struct {
 	Output		GetGuestOSInfoOutput `json:"output"`
 }
 
-func (c *Client)  GetGuestOSInfo(userid string) (*GetGuestOSInfoResult, error) {
+func (c *Client) GetGuestOSInfo(userid string) (*GetGuestOSInfoResult, error) {
 	var result GetGuestOSInfoResult
 
 	body, err := c.doRequest("GET", "/guests/" + userid + "/os_info", nil)
@@ -555,7 +560,7 @@ func (c *Client)  GetGuestOSInfo(userid string) (*GetGuestOSInfoResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-online-cpu-num
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-online-cpu-num
 
 type GetGuestOnlineCPUNumResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -583,7 +588,7 @@ func (c *Client) GetGuestOnlineCPUNum(userid string) (*GetGuestOnlineCPUNumResul
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-user-direct
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-user-direct
 
 type GetGuestUserDirectoryOutput struct {
 	UserDirect	[]string	`json:"user_direct,omitempty"`
@@ -615,7 +620,7 @@ func (c *Client) GetGuestUserDirectory(userid string) (*GetGuestUserDirectoryRes
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-adapters-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-adapters-info
 
 type GetGuestAdaptersInfoAdapter struct {
 	LANOwner	string		`json:"lan_owner"`
@@ -656,7 +661,7 @@ func (c *Client) GetGuestAdaptersInfo(userid string) (*GetGuestAdaptersInfoResul
 	return &result, nil
 }
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-guest-nic
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-guest-nic
 
 type CreateGuestNICParams struct {
 	VDev		string		`json:"vdev,omitempty"`
@@ -678,7 +683,7 @@ func (c *Client) CreateGuestNIC(userid string, params *CreateGuestNICParams) err
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#create-network-interface
+// https://feilong.readthedocs.io/en/latest/restapi.html#create-network-interface
 
 type CreateGuestNetworkInterfaceParams struct {
 	OSVersion	string		`json:"os_version"`
@@ -699,7 +704,7 @@ func (c *Client) CreateGuestNetworkInterface(userid string, params *CreateGuestN
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-network-interface
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-network-interface
 
 type DeleteGuestNetworkInterfaceParams struct {
 	OSVersion	string		`json:"os_version"`
@@ -720,7 +725,7 @@ func (c *Client) DeleteGuestNetworkInterface(userid string, params *DeleteGuestN
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#start-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#start-guest
 
 func (c *Client) StartGuest(userid string) error {
 	params := simpleAction { Action: "start" }
@@ -729,7 +734,7 @@ func (c *Client) StartGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#stop-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#stop-guest
 
 func (c *Client) StopGuest(userid string) error {
 	params := simpleAction { Action: "stop" }
@@ -738,7 +743,7 @@ func (c *Client) StopGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#softstop-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#softstop-guest
 
 func (c *Client) SoftStopGuest(userid string) error {
 	params := simpleAction { Action: "softstop" }
@@ -747,7 +752,7 @@ func (c *Client) SoftStopGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#pause-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#pause-guest
 
 func (c *Client) PauseGuest(userid string) error {
 	params := simpleAction { Action: "pause" }
@@ -756,7 +761,7 @@ func (c *Client) PauseGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#unpause-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#unpause-guest
 
 func (c *Client) UnpauseGuest(userid string) error {
 	params := simpleAction { Action: "unpause" }
@@ -765,7 +770,7 @@ func (c *Client) UnpauseGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#reboot-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#reboot-guest
 
 func (c *Client) RebootGuest(userid string) error {
 	params := simpleAction { Action: "reboot" }
@@ -774,7 +779,7 @@ func (c *Client) RebootGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#reset-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#reset-guest
 
 func (c *Client) ResetGuest(userid string) error {
 	params := simpleAction { Action: "reset" }
@@ -783,7 +788,7 @@ func (c *Client) ResetGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-console-output
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-console-output
 
 type GetGuestConsoleOutputResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -817,7 +822,7 @@ func (c *Client) GetGuestConsoleOutput(userid string) (*GetGuestConsoleOutputRes
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#live-migration-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#live-migration-of-guest
 
 type LiveMigrateGuestOptions struct {
 	MaxTotal	int		`json:"maxtotal,omitempty"`
@@ -847,7 +852,7 @@ func (c *Client) LiveMigrateGuest(userid string, params *LiveMigrateGuestParams)
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-register
+// https://feilong.readthedocs.io/en/latest/restapi.html#guest-register
 
 type RegisterGuestParams struct {
 	Action		string		`json:"action"`
@@ -870,7 +875,7 @@ func (c *Client) RegisterGuest(userid string, params *RegisterGuestParams) error
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#guest-deregister
+// https://feilong.readthedocs.io/en/latest/restapi.html#guest-deregister
 
 func (c *Client) DeregisterGuest(userid string) error {
 	params := simpleAction { Action: "deregister_vm" }
@@ -879,7 +884,7 @@ func (c *Client) DeregisterGuest(userid string) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#live-resize-cpus-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#live-resize-cpus-of-guest
 
 type LiveResizeGuestCPUsParams struct {
 	Action		string		`json:"action"`
@@ -900,7 +905,7 @@ func (c *Client) LiveResizeGuestCPUs(userid string, params *LiveResizeGuestCPUsP
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#resize-cpus-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#resize-cpus-of-guest
 
 type ResizeGuestCPUsParams struct {
 	Action		string		`json:"action"`
@@ -921,7 +926,7 @@ func (c *Client) ResizeGuestCPUs(userid string, params *ResizeGuestCPUsParams) e
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#live-resize-memory-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#live-resize-memory-of-guest
 
 type LiveResizeGuestMemoryParams struct {
 	Action		string		`json:"action"`
@@ -942,7 +947,7 @@ func (c *Client) LiveResizeGuestMemory(userid string, params *LiveResizeGuestMem
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#resize-memory-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#resize-memory-of-guest
 
 type ResizeGuestMemoryParams struct {
 	Action		string		`json:"action"`
@@ -963,7 +968,7 @@ func (c *Client) ResizeGuestMemory(userid string, params *ResizeGuestMemoryParam
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#deploy-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#deploy-guest
 
 type DeployGuestParams struct {
 	Action		string		`json:"action"`
@@ -989,7 +994,7 @@ func (c *Client) DeployGuest(userid string, params *DeployGuestParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#capture-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#capture-guest
 
 type CaptureGuestParams struct {
 	Action		string		`json:"action"`
@@ -1012,7 +1017,7 @@ func (c *Client) CaptureGuest(userid string, params *CaptureGuestParams) error {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#grow-root-volume-of-guest
+// https://feilong.readthedocs.io/en/latest/restapi.html#grow-root-volume-of-guest
 
 type GrowGuestRootVolumeParams struct {
 	Action		string		`json:"action"`
@@ -1033,7 +1038,7 @@ func (c *Client) GrowGuestRootVolume(userid string, params *GrowGuestRootVolumeP
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guest-power-state
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guest-power-state
 
 type GetGuestPowerStateResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -1061,7 +1066,7 @@ func (c *Client) GetGuestPowerState(userid string) (*GetGuestPowerStateResult, e
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#update-guest-nic
+// https://feilong.readthedocs.io/en/latest/restapi.html#update-guest-nic
 
 type UpdateGuestNICParams struct {
 	Couple		*bool		`json:"couple"`
@@ -1082,7 +1087,7 @@ func (c *Client) UpdateGuestNIC(userid string, vdev string, params *UpdateGuestN
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#delete-guest-nic
+// https://feilong.readthedocs.io/en/latest/restapi.html#delete-guest-nic
 
 type DeleteGuestNICParams struct {
 	Active		*bool		`json:"active,omitempty"`

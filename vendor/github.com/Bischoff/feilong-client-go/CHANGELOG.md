@@ -1,4 +1,20 @@
-## 0.1.5 - 2025-12-05
+## 0.1.6 - 2026-11-01
+
+BUGS:
+ * Feilong documentation has moved
+ * parameter ZCCUserId instead of ZCCUserID
+ * parameter Comments instead of CommentsList
+
+BREAKING FEILONG API CHANGES:
+ * rename "md5sum" parameter to "checksum"
+ * GetHostDiskPoolVolumeNames() outputs several pools
+
+FEATURES:
+ * new parameters for CreateGuest()
+ * add GetHostPCIFunctionList()
+
+
+## 0.1.5 - 2026-01-09
 
 BUGS:
  * booleans did not alsways get marshalled into json

@@ -11,7 +11,7 @@ import (
 )
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-guests-list
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-guests-list
 
 type GetHostGuestListResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -40,7 +40,7 @@ func (c *Client) GetHostGuestList() (*GetHostGuestListResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-host-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-info
 
 type GetHostInfoCPUInfo struct {
 	CECModel	string		`json:"cec_model"`
@@ -49,7 +49,7 @@ type GetHostInfoCPUInfo struct {
 
 type GetHostInfoOutput struct {
 	ZVMHost		string		`json:"zvm_host"`
-	ZCCUserID	string		`json:"zcc_userid"`
+	ZCCUserId	string		`json:"zcc_userid"`
 	IPLTime		string		`json:"ipl_time"`
 	HypervisorHostname string	`json:"hypervisor_hostname"`
 	HypervisorType	string		`json:"hypervisor_type"`
@@ -90,7 +90,7 @@ func (c *Client) GetHostInfo() (*GetHostInfoResult, error) {
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-host-disk-pool-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-disk-pool-info
 
 type GetHostDiskPoolInfoOutput struct {
 	DiskAvailable	int		`json:"disk_available"`
@@ -172,9 +172,9 @@ func (c *Client) GetHostDiskPoolDetails(poolName *string) (*GetHostDiskPoolDetai
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-host-disk-pool-volume-names
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-disk-pool-volume-names
 
-type GetHostDiskPoolVolumeNamesOutput struct {
+type DiskPoolVolumeNames struct {
 	DiskPoolVolumes	string		`json:"diskpool_volumes"`
 }
 
@@ -184,7 +184,7 @@ type GetHostDiskPoolVolumeNamesResult struct {
 	Reason		int		`json:"rs"`
 	ErrorMsg	string		`json:"errmsg"`
 	ModuleId	int		`json:"modID"`
-	Output		GetHostDiskPoolVolumeNamesOutput `json:"output"`
+	Output		map[string]DiskPoolVolumeNames `json:"output"`
 }
 
 func (c *Client) GetHostDiskPoolVolumeNames(poolName *string) (*GetHostDiskPoolVolumeNamesResult, error) {
@@ -209,7 +209,7 @@ func (c *Client) GetHostDiskPoolVolumeNames(poolName *string) (*GetHostDiskPoolV
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-host-volume-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-volume-info
 
 type GetHostVolumeInfoOutput struct {
 	VolumeType	string		`json:"volume_type"`
@@ -242,7 +242,7 @@ func (c *Client) GetHostVolumeInfo(volumeName string) (*GetHostVolumeInfoResult,
 }
 
 
-// https://cloudlib4zvm.readthedocs.io/en/latest/restapi.html#get-host-ssi-cluster-info
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-ssi-cluster-info
 
 type GetHostSSIClusterInfoResult struct {
 	OverallRC	int		`json:"overallRC"`
@@ -257,6 +257,41 @@ func (c *Client) GetHostSSIClusterInfo() (*GetHostSSIClusterInfoResult, error) {
 	var result GetHostSSIClusterInfoResult
 
 	body, err := c.doRequest("GET", "/host/ssi", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// https://feilong.readthedocs.io/en/latest/restapi.html#get-host-pci-function-list
+
+type GetHostPCIFunctionListOutput struct {
+	PCIF 		string		`json:"pcif"`
+	Status		string		`json:"status"`
+	UserId		string		`json:"userid"`
+	State		string		`json:"state"`
+	Type		string		`json:"type"`
+}
+
+type GetHostPCIFunctionListResult struct {
+	OverallRC	int		`json:"overallRC"`
+	ReturnCode	int		`json:"rc"`
+	Reason		int		`json:"rs"`
+	ErrorMsg	string		`json:"errmsg"`
+	ModuleId	int		`json:"modID"`
+	Output		GetHostPCIFunctionListOutput `json:"output"`
+}
+
+func (c *Client) GetHostPCIFunctionList() (*GetHostPCIFunctionListResult, error) {
+	var result GetHostPCIFunctionListResult
+
+	body, err := c.doRequest("GET", "/host/pcif", nil)
 	if err != nil {
 		return nil, err
 	}
