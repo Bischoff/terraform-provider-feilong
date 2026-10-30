@@ -1,8 +1,11 @@
-## 0.0.10 - (unreleased)
+## 0.0.10 - 2026-11-01
 
 BUGS:
  * 60 seconds timeout is not enough for SLES 16
  * Feilong documentation has moved
+
+FEATURES:
+ * mention IIM in the doc
 
 
 ## 0.0.9 - 2025-12-08

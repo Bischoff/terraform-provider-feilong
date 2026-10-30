@@ -2,11 +2,11 @@
 
 ### Introduction and Ecosystem
 
-The Terraform provider for Feilong enables to dynamically deploy guests on a s/390 system that runs z/VM operating system. It leverages [Feilong](https://openmainframeproject.org/projects/feilong/) connector, which is at the core of the [Cloud Infrastructure Center](https://www.ibm.com/products/cloud-infrastructure-center) of IBM. However, Feilong can be used alone, without a full CIC deployment.
+The Terraform provider for Feilong enables to dynamically deploy guests on a [s/390 system](https://www.ibm.com/history/eserver-zseries) that runs [z/VM](https://www.ibm.com/products/zvm) operating system. It leverages [Feilong](https://openmainframeproject.org/projects/feilong/) connector, which is at the core of the [Cloud Infrastructure Center](https://www.ibm.com/products/cloud-infrastructure-center) of IBM, and its successor, the [IBM Infrastructure Management for Z and LinuxONE](https://www.ibm.com/products/infrastructure-management-for-z-and-linuxone). However, Feilong can be used alone, without a full CIC or IIM deployment.
 
-Feilong offers an HTTP REST API that manages VMs by transmitting requests to the more complex [Systems Management API](https://www.ibm.com/docs/en/zvm/7.2?topic=introduction-smapi-quick-start-guide), also known as SMAPI. The [Go library for Feilong](https://github.com/Bischoff/feilong-client-go) allows to call that REST API in a simple manner from a Go program. The Terraform provider for Feilong relies on that library and is seen by the [Terraform](https://www.terraform.io/) automation tool as a plugin.
+Feilong offers an HTTP REST API that manages VMs by transmitting requests to the more complex [Systems Management API](https://www.ibm.com/docs/en/zvm/7.2?topic=introduction-smapi-quick-start-guide), also known as SMAPI, or to the [Control Program](https://www.ibm.com/docs/en/zvm/7.4.0?topic=zvm-overview-control-program-cp), also known as CP. The [Go library for Feilong](https://github.com/Bischoff/feilong-client-go) allows to call that REST API in a simple manner from a Go program. The Terraform provider for Feilong relies on that library and is seen by the [Terraform](https://www.terraform.io/) or [OpenTofu](https://opentofu.org/) automation tools as a plugin.
 
-Terraform relies on `main.tf` files for deploying VMs. The Feilong provider extends the syntax of those configuration files to take into account the specificities of z/VM.
+Terraform or OpenTofu relies on `main.tf` files for deploying VMs. The Feilong provider extends the syntax of those configuration files to take into account the specificities of z/VM.
 
 A normal cycle of commands to use the `main.tf` file is:
 ```bash
@@ -68,7 +68,7 @@ output "feilong_guest_ip_address" {
 (other values for output)
 ```
 
-The `terraform` section allows to define the required versions of terraform and of the various providers. The `provider` section allows to define global settings, like the IP address or the domain name of the Feilong connector. Both are described more in details in [Global Parameters](global-options.md) chapter.
+The `terraform` section allows to define the required versions of Terraform or OpenTofu and of the various providers. The `provider` section allows to define global settings, like the IP address or the domain name of the Feilong connector. Both are described more in details in [Global Parameters](global-options.md) chapter.
 
 The `feilong_cloudinit_params` resource sections allow to create locally a file that can be used to store parameters for [cloud-init](https://github.com/canonical/cloud-init) during the initial deployment. It is described more in details in [Local Files](local-files.md) chapter.
 
@@ -78,4 +78,4 @@ The `feilong_guest` resource sections allow to create s/390 guest VMs (`userid`s
 
 The `output` sections allow to display computed values at the end of the terraform deployment. These are values that were unknown at the start of the deployment.
 
-Terraform also has the notion of "data sources". They are currently not used in the Terraform provider for Feilong.
+Terraform and OpenTofu also hava the notion of "data sources". They are currently not used in the Terraform provider for Feilong.
