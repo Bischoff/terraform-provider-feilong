@@ -76,6 +76,3 @@ release:
   # Delete the existing asset
   # and retry the upload if it encounters the 'already_exists' (422) error.
   replace_existing_artifacts: true
-  # Add the generated SHA256 sums file to the release
-  extra_files:
-    - glob: 'dist/{{ .ProjectName }}_{{ .Version }}_checksums.txt'

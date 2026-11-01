@@ -10,7 +10,7 @@ on:
       # (not in this version of the releaser)
       # - 'release/v*'
       # do not release yet
-      # - 'v*'
+      - 'v*'
 
 permissions:
   # Required to create the GitHub Release and upload artifacts
